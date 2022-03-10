@@ -1,0 +1,45 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'word-repeater'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=word-repeater",
+                    "--package=word-repeater"
+                ],
+                "filter": {
+                    "name": "word-repeater",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'word-repeater'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=word-repeater",
+                    "--package=word-repeater"
+                ],
+                "filter": {
+                    "name": "word-repeater",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
