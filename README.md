@@ -17,3 +17,21 @@ When taking words from user, user should only input a single meaning at one time
 And, while doing the test, user should separate different meanings by "`;`" or "`,`". And user should answer all the meanings which are taken util then.
 
 Additionally, punctuations will be normalized when comparing answers.
+
+### DESIGN
+Features:
+- Storage can be synced via email.
+- Security keys should be stored in system keyrings.
+- Words can be exported to/imported from file.
+
+Commandline interface:
+- `wordmem login`: login to email to enable syncing.
+- `wordmem logout`: logout to disable syncing.
+- `wordmem take`: take words from user.
+- `wordmem change <word>`: change explanation of an existing word.
+- `wordmem delete <word>`: delete a word.
+- `wordmem search <word>`: search a word on internet.
+- `wordmem clear`: remove all words.
+- `wordmem test [count]`: do a test, up to max `count` words, default is 10.
+- `wordmem export <file>`: export words to a file.
+- `wordmem import <file>`: import words from a file.
