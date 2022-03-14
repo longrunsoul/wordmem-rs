@@ -1,5 +1,5 @@
-# word-repeater
-`word-repeater` is a helper tool for language learning, focusing on vocabulary. It takes words and explanation from user, and then makes user revisit them periodically so that user can memorize it. Thus a repeater of visiting for user.
+# wordmem
+`wordmem` is a helper tool for language learning, focusing on vocabulary. It takes words and explanation from user, and then makes user revisit them periodically so that user can memorize it.
 Currently it is an in-progress project.
 
 ### IDEAS

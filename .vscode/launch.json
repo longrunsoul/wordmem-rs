@@ -7,15 +7,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'word-repeater'",
+            "name": "Debug executable 'wordmem'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=word-repeater",
-                    "--package=word-repeater"
+                    "--bin=wordmem",
+                    "--package=wordmem"
                 ],
                 "filter": {
-                    "name": "word-repeater",
+                    "name": "wordmem",
                     "kind": "bin"
                 }
             },
@@ -25,16 +25,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'word-repeater'",
+            "name": "Debug unit tests in executable 'wordmem'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=word-repeater",
-                    "--package=word-repeater"
+                    "--bin=wordmem",
+                    "--package=wordmem"
                 ],
                 "filter": {
-                    "name": "word-repeater",
+                    "name": "wordmem",
                     "kind": "bin"
                 }
             },
