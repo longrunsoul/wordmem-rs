@@ -35,3 +35,8 @@ Commandline interface:
 - `wordmem test [count]`: do a test, up to max `count` words, default is 10.
 - `wordmem export <file>`: export words to a file.
 - `wordmem import <file>`: import words from a file.
+
+Implementation:
+- SQLite for storage of words.
+- JSON format for exported file of words.
+- Compressed .sqlite file as attachment and with INI format config info as body in email for syncing.
