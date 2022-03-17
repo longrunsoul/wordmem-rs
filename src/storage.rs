@@ -43,15 +43,15 @@ pub fn init_db() -> Result<()> {
     Ok(())
 }
 
-pub fn get_by_word_name(name: SqlVal) -> Result<Option<Word>> {
-    let mut result= None;
+pub fn get_by_col(col: &str, val: SqlVal) -> Result<Option<Word>> {
+    let mut result = None;
     let conn = make_conn()?;
     conn.iterate(
-        format!("SELECT * FROM word WHERE name = {}", name),
+        format!("SELECT * FROM word WHERE {} = {}", col, val),
         |pairs| {
             result = Some(Word::from_sqlite_pairs(pairs));
             false
-        }
+        },
     )?;
     if result.is_none() {
         return Ok(None);
@@ -59,4 +59,57 @@ pub fn get_by_word_name(name: SqlVal) -> Result<Option<Word>> {
 
     let word = result.unwrap()?;
     Ok(Some(word))
+}
+
+pub fn insert_word(word: Word) -> Result<()> {
+    let conn = make_conn()?;
+    conn.execute(
+        format!(
+            "INSERT INTO word (name, meanings, period_days, last_visit, next_visit)
+            VALUES ({}, {}, {}, {}, {});",
+            SqlVal::Text(&word.name),
+            SqlVal::Text(&word.meanings),
+            SqlVal::Integer(word.period_days as i64),
+            SqlVal::Integer(word.last_visit.timestamp()),
+            SqlVal::Integer(word.next_visit.timestamp())
+        )
+    )?;
+
+    Ok(())
+}
+
+pub fn update_word(word: Word) -> Result<()> {
+    let conn = make_conn()?;
+    conn.execute(
+        format!(
+            "UPDATE word
+            SET
+                name={},
+                meanings={},
+                period_days={},
+                last_visit={},
+                next_visit={}
+            WHERE id = {};",
+            SqlVal::Text(&word.name),
+            SqlVal::Text(&word.meanings),
+            SqlVal::Integer(word.period_days as i64),
+            SqlVal::Integer(word.last_visit.timestamp()),
+            SqlVal::Integer(word.next_visit.timestamp()),
+            SqlVal::Integer(word.id.unwrap())
+        )
+    )?;
+
+    Ok(())
+}
+
+pub fn del_word(id: i64) -> Result<()> {
+    let conn = make_conn()?;
+    conn.execute(
+        format!(
+            "DELETE FROM word WHERE id = {};",
+            SqlVal::Integer(id)
+        )
+    )?;
+
+    Ok(())
 }

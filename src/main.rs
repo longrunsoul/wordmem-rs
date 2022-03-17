@@ -7,7 +7,7 @@ use crate::sql_value::SqlVal;
 
 fn main() -> Result<()> {
     storage::init_db()?;
-    let test = storage::get_by_word_name(SqlVal::Text("test"))?;
+    let test = storage::get_by_col("name", SqlVal::Text("test"))?;
     assert_eq!(test, None);
 
     Ok(())

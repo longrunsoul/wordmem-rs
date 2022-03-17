@@ -6,7 +6,7 @@ use chrono::{DateTime, Utc, NaiveDateTime};
 
 #[derive(Debug, PartialEq)]
 pub struct Word {
-    pub id: i64,
+    pub id: Option<i64>,
     pub name: String,
     pub meanings: String,
     pub period_days: u16,
@@ -18,7 +18,7 @@ impl Word {
     pub fn from_sqlite_pairs(pairs: &[(&str, Option<&str>)]) -> Result<Word> {
         let hash_map = to_hashmap(pairs);
         Ok(Word {
-            id: get_val(&hash_map, "id")?.unwrap(),
+            id: Some(get_val(&hash_map, "id")?.unwrap()),
             name: get_val(&hash_map, "name")?.unwrap(),
             meanings: get_val(&hash_map, "meanings")?.unwrap(),
             period_days: get_val(&hash_map, "period_days")?.unwrap(),
