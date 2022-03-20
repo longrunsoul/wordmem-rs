@@ -1,9 +1,8 @@
-mod storage;
-mod model;
-mod sql_value;
+mod infra;
 
 use anyhow::Result;
-use crate::sql_value::SqlVal;
+
+use infra::*;
 
 fn main() -> Result<()> {
     storage::init_db()?;

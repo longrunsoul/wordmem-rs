@@ -4,8 +4,8 @@ use std::path::PathBuf;
 use anyhow::Result;
 use sqlite::Connection;
 
-use crate::sql_value::*;
-use crate::model::*;
+use crate::infra::sql_value::*;
+use crate::infra::model::*;
 
 fn make_db_path() -> PathBuf {
     let mut db_path =
