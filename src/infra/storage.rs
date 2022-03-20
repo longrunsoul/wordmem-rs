@@ -61,7 +61,7 @@ pub fn get_by_col(col: &str, val: SqlVal) -> Result<Option<Word>> {
     Ok(Some(word))
 }
 
-pub fn insert_word(word: Word) -> Result<()> {
+pub fn insert_word(word: &Word) -> Result<()> {
     let conn = make_conn()?;
     conn.execute(
         format!(
@@ -78,7 +78,7 @@ pub fn insert_word(word: Word) -> Result<()> {
     Ok(())
 }
 
-pub fn update_word(word: Word) -> Result<()> {
+pub fn update_word(word: &Word) -> Result<()> {
     let conn = make_conn()?;
     conn.execute(
         format!(
@@ -113,3 +113,5 @@ pub fn del_word(id: i64) -> Result<()> {
 
     Ok(())
 }
+
+// TODO: add tests here
