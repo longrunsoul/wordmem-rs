@@ -1,6 +1,6 @@
 # wordmem
 `wordmem` is a helper tool for language learning, focusing on vocabulary. It takes words and explanation from user, and then makes user revisit them periodically so that user can memorize it.
-Currently it is an in-progress project.
+Currently, it is an in-progress project.
 
 ### IDEAS
 The application splits to 3 parts:
@@ -10,7 +10,7 @@ The application splits to 3 parts:
 
 Revisiting means test. User need to spell out the word and the explanation respectively in 2 passes.
 
-The revisiting is planed to start at the 1st, 2nd, 4th, 8th, 16th, 32th, 64th, 128th day since the last visiting. Correct answer will move the revisiting schedule to next planed time. On the contrary, wrong answer will move the plan backwards.
+The revisiting is planed to start at the 1st, 2nd, 4th, 8th, 16th, 32end, 64th, 128th day since the last visiting. Correct answer will move the revisiting schedule to next planed time. On the contrary, wrong answer will move the plan backwards.
 
 When taking words from user, user should only input a single meaning at one time, but different meanings at each time. That is, multiple meanings will be taken for the same word as time goes.
 
@@ -21,7 +21,7 @@ Additionally, punctuations will be normalized when comparing answers.
 ### DESIGN
 Features:
 - Storage can be synced via email.
-- Security keys should be stored in system keyrings.
+- Security keys should be stored in system keyring.
 - Words can be exported to/imported from file.
 
 Commandline interface:
