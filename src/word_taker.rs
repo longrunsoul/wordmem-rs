@@ -2,7 +2,7 @@ use std::io;
 use std::io::BufRead;
 
 use anyhow::Result;
-use chrono::Utc;
+use chrono::{Utc, Duration};
 
 use crate::infra::*;
 use crate::revisit_planner as planner;
@@ -45,7 +45,7 @@ pub fn read_one_word<T>(lines: &mut T) -> Result<Option<Word>>
             id: None,
             period_days,
             last_visit: now,
-            next_visit: planner::get_next_visit_time(now, period_days),
+            next_visit: now + Duration::days(period_days as i64),
         };
 
         break Ok(Some(word));
