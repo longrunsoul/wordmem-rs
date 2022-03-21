@@ -52,7 +52,7 @@ pub fn read_one_word<T>(lines: &mut T) -> Result<Option<Word>>
     }
 }
 
-pub fn read_words() -> Result<usize> {
+pub fn read_words_to_db(db: &Db) -> Result<usize> {
     println!("Enter words, one word per line. Enter empty line to end listing.");
     println!("Format: <WORD>=<MEANING1>;<MEANING2>;...;<MEANINGn>;");
     println!("Example: right=the opposite of left;correct;");
@@ -60,18 +60,19 @@ pub fn read_words() -> Result<usize> {
     let mut count: usize = 0;
     let stdin = io::stdin();
     let mut stdin_lines = stdin.lock().lines();
+
     while let Some(word) = read_one_word(&mut stdin_lines)? {
         count += 1;
 
-        let existing = storage::get_by_col("name", SqlVal::Text(&word.name.trim().to_lowercase()))?;
+        let existing = db.get_by_col("name", SqlVal::Text(&word.name.trim().to_lowercase()))?;
         if existing.is_none() {
-            storage::insert_word(&word)?;
+            db.insert_word(&word)?;
             continue;
         }
 
         let mut existing = existing.unwrap();
         existing.merge_meanings(&word.meanings);
-        storage::update_word(&existing)?;
+        db.update_word(&existing)?;
     }
 
     Ok(count)
