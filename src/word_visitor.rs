@@ -82,6 +82,6 @@ pub fn test_one_word(db: &Db) -> Result<bool> {
 }
 
 pub fn do_tests(db: &Db) -> Result<()> {
-    while test_one_word(db) {}
+    while test_one_word(db)? {}
     Ok(())
 }
