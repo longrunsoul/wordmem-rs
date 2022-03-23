@@ -39,7 +39,7 @@ pub fn read_one_word<T>(lines: &mut T) -> Result<Option<Word>>
         let now = Utc::now();
         let period_days = planner::get_init_period_days();
         let word = Word {
-            name: name.to_string(),
+            name: name.trim().to_string(),
             meanings,
 
             id: None,

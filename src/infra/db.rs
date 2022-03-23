@@ -2,6 +2,7 @@ use std::env;
 use std::path::PathBuf;
 
 use anyhow::Result;
+use chrono::Utc;
 use sqlite::Connection;
 
 use crate::infra::sql_value::*;
@@ -111,6 +112,27 @@ impl Db {
         )?;
 
         Ok(())
+    }
+
+    pub fn get_one_word_to_test(&self) -> Result<Option<Word>> {
+        let mut result = None;
+        let now = Utc::now();
+        self.conn.iterate(
+            format!(
+                "SELECT * FROM word WHERE next_visit <= {} ORDER BY next_visit ASC LIMIT 1;",
+                SqlVal::Integer(now.timestamp())
+            ),
+            |pairs| {
+                result = Some(Word::from_sqlite_pairs(pairs));
+                true
+            },
+        )?;
+        if result.is_none() {
+            return Ok(None);
+        }
+
+        let word = result.unwrap()?;
+        Ok(Some(word))
     }
 }
 

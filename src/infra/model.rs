@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
 
 use anyhow::Result;
@@ -63,6 +63,16 @@ impl Word {
 
         let joined = merged.into_values().collect::<Vec<_>>().join(";");
         self.meanings = joined;
+    }
+
+    pub fn has_meanings(&self, meanings: &str) -> bool {
+        let mset: HashSet<String> = Word::make_meaning_cmp_map(meanings).into_keys().collect();
+        let self_mset : HashSet<String> = Word::make_meaning_cmp_map(&self.meanings).into_keys().collect();
+        if mset.is_empty() {
+            return false;
+        }
+
+        self_mset == mset
     }
 }
 
