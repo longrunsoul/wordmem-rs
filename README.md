@@ -4,7 +4,7 @@ Currently, it is an in-progress project.
 
 ### IDEAS
 The application splits to 3 parts:
-- `word-taker`, which takes words from user
+- `word-manager`, which takes and manages words from user
 - `word-visitor`, which makes user revisit the words periodically
 - `revisit-planner`, which plans the revisiting schedule
 
