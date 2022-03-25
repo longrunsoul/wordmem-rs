@@ -13,13 +13,16 @@ pub struct Db {
 }
 
 impl Db {
+    pub fn get_default_db_name() -> String {
+        "wordmem.sqlite".to_string()
+    }
     pub fn get_default_db_path() -> PathBuf {
         let mut db_path =
             match env::current_exe() {
                 Err(e) => panic!("{}", e),
                 Ok(p) => p,
             }.parent().unwrap().to_path_buf();
-        db_path.push("wordmem.sqlite");
+        db_path.push(Db::get_default_db_name());
 
         db_path
     }
