@@ -23,7 +23,7 @@ impl SyncData {
         }
 
         let sync_keys = sync_keys.unwrap();
-        let tls = native_tls::TlsConnector::builder().build().unwrap();
+        let tls = native_tls::TlsConnector::builder().build()?;
         let client = imap::connect((sync_keys.imap_server.as_str(), 993), &sync_keys.imap_server, &tls).unwrap();
         let mut imap_session = client.login(&sync_keys.email, &sync_keys.password).map_err(|e| e.0)?;
 
@@ -89,10 +89,7 @@ impl SyncData {
                     )
             )?;
         let creds = Credentials::new(sync_keys.email, sync_keys.password);
-        let mailer = SmtpTransport::relay(sync_keys.smtp_server.as_str())
-            .unwrap()
-            .credentials(creds)
-            .build();
+        let mailer = SmtpTransport::relay(sync_keys.smtp_server.as_str())?.credentials(creds).build();
         mailer.send(&message)?;
 
         Ok(())
