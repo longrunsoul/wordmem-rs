@@ -1,5 +1,5 @@
 mod infra;
-mod word_taker;
+mod word_manager;
 mod revisit_planner;
 mod word_visitor;
 mod db_syncer;
