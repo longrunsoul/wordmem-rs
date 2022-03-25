@@ -117,6 +117,11 @@ impl Db {
         Ok(())
     }
 
+    pub fn clear_words(&self) -> Result<()> {
+        self.conn.execute("DELETE FROM word;")?;
+        Ok(())
+    }
+
     pub fn get_one_word_to_test(&self) -> Result<Option<Word>> {
         let mut result = None;
         let now = Utc::now();
@@ -140,7 +145,7 @@ impl Db {
 }
 
 #[cfg(test)]
-mod storage_tests {
+mod db_tests {
     use anyhow::Result;
     use chrono::{TimeZone, Utc};
 
