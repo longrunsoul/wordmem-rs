@@ -32,7 +32,7 @@ Commandline interface:
 - `wordmem delete <word>`: delete a word.
 - `wordmem search <word>`: search a word on internet.
 - `wordmem clear`: remove all words.
-- `wordmem test [count]`: do a test, up to max `count` words, default is 10.
+- `wordmem test`: do tests.
 - `wordmem export <file>`: export words to a file.
 - `wordmem import <file>`: import words from a file.
 

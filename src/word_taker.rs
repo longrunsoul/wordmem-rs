@@ -7,7 +7,7 @@ use chrono::{Utc, Duration};
 use crate::infra::*;
 use crate::revisit_planner as planner;
 
-pub fn read_one_word<T>(lines: &mut T) -> Result<Option<Word>>
+fn read_one_word<T>(lines: &mut T) -> Result<Option<Word>>
     where T: Iterator<Item=StdResult<String, std::io::Error>> {
     loop {
         let l = lines.next();
@@ -76,4 +76,50 @@ pub fn read_words_to_db(db: &Db) -> Result<usize> {
     }
 
     Ok(count)
+}
+
+pub fn change_word(db: &Db, name: &str) -> Result<()> {
+    let word = db.get_by_col("name", SqlVal::Text(name.trim()))?;
+    if word.is_none() {
+        println!("Word not found.");
+        return Ok(());
+    }
+
+    print!("Enter the meanings: ");
+    let stdin = io::stdin();
+    let mut lines = stdin.lock().lines();
+    let meanings = lines.next().unwrap()?;
+    let meanings = Word::norm_meanings(&meanings);
+
+    let mut word = word.unwrap();
+    word.meanings = meanings;
+    db.update_word(&word)?;
+
+    println!("Word changed.");
+    Ok(())
+}
+
+pub fn delete_word(db: &Db, name: &str) -> Result<()> {
+    let word = db.get_by_col("name", SqlVal::Text(name.trim()))?;
+    if word.is_none() {
+        println!("Word not found.");
+        return Ok(());
+    }
+
+    let word = word.unwrap();
+    db.del_word(word.id.unwrap())?;
+
+    println!("Word deleted.");
+    Ok(())
+}
+
+pub fn search_word(name: &str) -> Result<()> {
+    open::that(format!("https://translate.google.com/?text={}", name.trim()))?;
+    Ok(())
+}
+
+pub fn clear_words(db: &Db) -> Result<()> {
+    db.clear_words()?;
+    println!("Words cleared.");
+    Ok(())
 }
