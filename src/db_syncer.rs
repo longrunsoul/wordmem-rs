@@ -1,3 +1,4 @@
+use std::io::{self, BufRead};
 use anyhow::Result;
 use chrono::Utc;
 use lettre::{
@@ -38,4 +39,27 @@ pub fn test_sync_keys(keys: &SyncKeys) -> Result<bool> {
     }
 
     Ok(true)
+}
+
+pub fn read_sync_keys() -> Result<SyncKeys> {
+    let stdin = io::stdin();
+    let mut lines = stdin.lock().lines();
+
+    print!("Enter IMAP server:");
+    let imap_server = lines.next().unwrap()?;
+
+    print!("Enter SMTP server:");
+    let smtp_server = lines.next().unwrap()?;
+
+    print!("Enter email:");
+    let email = lines.next().unwrap()?;
+
+    let password = rpassword::prompt_password("Enter password:")?;
+
+    Ok(SyncKeys {
+        imap_server,
+        smtp_server,
+        email,
+        password,
+    })
 }
