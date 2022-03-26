@@ -7,8 +7,6 @@ authors = ["longrunsoul <longrunsoul@outlook.com>"]
 repository = "https://github.com/longrunsoul/wordmem"
 license = "GPL3"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 anyhow = "1.0.56"
 chrono = "0.4.19"
@@ -24,3 +22,5 @@ rpassword = "6.0.1"
 open = "2.1.1"
 clap = { version = "3.1.6", features = ["derive"] }
 serde_json = "1.0.79"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
