@@ -10,12 +10,16 @@ use regex::Regex;
 
 use crate::infra::{Db, SyncKeys};
 
+const LOCK_FILENAME: &str = "sync.lock";
+
 pub struct SyncData {
     pub data_time: DateTime<Utc>,
     pub db_bytes: Vec<u8>,
 }
 
 impl SyncData {
+    // TODO: add lock file logics, to make syncing robust
+
     pub fn get_data() -> Result<Option<SyncData>> {
         let sync_keys = SyncKeys::get_keys()?;
         if sync_keys.is_none() {
