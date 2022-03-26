@@ -1,5 +1,7 @@
-use std::collections::{HashMap, HashSet};
-use std::str::FromStr;
+use std::{
+    collections::{HashMap, HashSet},
+    str::FromStr,
+};
 
 use anyhow::Result;
 use chrono::{DateTime, Utc, NaiveDateTime, Duration};
@@ -81,7 +83,7 @@ impl Word {
 
     pub fn has_meanings(&self, meanings: &str) -> bool {
         let mset: HashSet<String> = Word::make_meaning_cmp_map(meanings).into_keys().collect();
-        let self_mset : HashSet<String> = Word::make_meaning_cmp_map(&self.meanings).into_keys().collect();
+        let self_mset: HashSet<String> = Word::make_meaning_cmp_map(&self.meanings).into_keys().collect();
         if mset.is_empty() {
             return false;
         }

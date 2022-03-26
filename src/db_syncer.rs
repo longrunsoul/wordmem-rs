@@ -1,5 +1,8 @@
-use std::fs;
-use std::io::{self, BufRead, Write};
+use std::{
+    fs,
+    io::{self, BufRead},
+};
+
 use anyhow::Result;
 use chrono::Utc;
 use lettre::{
@@ -7,9 +10,11 @@ use lettre::{
     Transport,
     transport::smtp::authentication::Credentials,
 };
-use crate::Db;
 
-use crate::infra::{SyncData, SyncKeys};
+use crate::{
+    word_manager,
+    infra::{Db, SyncData, SyncKeys},
+};
 
 pub fn test_sync_keys(keys: &SyncKeys) -> Result<bool> {
     println!("Testing sync keys...");
@@ -84,7 +89,7 @@ pub fn push_data_to_email() -> Result<bool> {
     SyncData{
         data_time: Utc::now(),
         db_bytes: fs::read(Db::get_default_db_path())?
-    }.pub_data()?;
+    }.push_data()?;
 
     println!("Success.");
     Ok(true)
@@ -97,15 +102,19 @@ pub fn pull_data_from_email() -> Result<bool> {
     }
 
     println!("Pulling data from email...");
-    let sync_data = SyncData::get_data()?;
+    let sync_data = SyncData::pull_data()?;
     if sync_data.is_none() {
         println!("Data not found in email. Syncing aborted.");
         return Ok(false);
     }
 
+    println!("Merging data...");
     let sync_data = sync_data.unwrap();
-    let mut open_options = fs::OpenOptions::new().truncate(true).write(true).open(Db::get_default_db_path())?;
-    open_options.write_all(&sync_data.db_bytes)?;
+    let email_json = tempfile::Builder::new().tempfile()?;
+    let email_db = tempfile::Builder::new().tempfile()?;
+    fs::write(email_db.path(), sync_data.db_bytes)?;
+    word_manager::export_words(&Db::new(email_db.path())?, email_json.path(), false)?;
+    word_manager::import_words(&Db::new(Db::get_default_db_path())?, email_json.path(), false)?;
 
     println!("Success.");
     Ok(true)

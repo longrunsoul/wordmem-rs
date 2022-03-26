@@ -1,16 +1,14 @@
 use anyhow::{Result, Error};
 use chrono::{DateTime, Utc};
 use mail_parser::{self, BodyPart};
-use lettre;
-use lettre::message::{Attachment, MultiPart};
-use lettre::message::header::ContentType;
-use lettre::{SmtpTransport, Transport};
-use lettre::transport::smtp::authentication::Credentials;
+use lettre::{
+    self, SmtpTransport, Transport,
+    message::{Attachment, MultiPart, header::ContentType},
+    transport::smtp::authentication::Credentials,
+};
 use regex::Regex;
 
 use crate::infra::{Db, SyncKeys};
-
-const LOCK_FILENAME: &str = "sync.lock";
 
 pub struct SyncData {
     pub data_time: DateTime<Utc>,
@@ -18,9 +16,7 @@ pub struct SyncData {
 }
 
 impl SyncData {
-    // TODO: add lock file logics, to make syncing robust
-
-    pub fn get_data() -> Result<Option<SyncData>> {
+    pub fn pull_data() -> Result<Option<SyncData>> {
         let sync_keys = SyncKeys::get_keys()?;
         if sync_keys.is_none() {
             return Ok(None);
@@ -71,7 +67,7 @@ impl SyncData {
         }))
     }
 
-    pub fn pub_data(self) -> Result<()> {
+    pub fn push_data(self) -> Result<()> {
         let sync_keys = SyncKeys::get_keys()?;
         if sync_keys.is_none() {
             return Err(Error::msg("No keys found for syncing"));

@@ -53,6 +53,7 @@ mod db_syncer;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+
 use crate::infra::{Db, SyncKeys};
 
 #[derive(Parser)]
@@ -149,11 +150,11 @@ fn main() -> Result<()> {
                 }
             }
             Commands::Export { file } => {
-                word_manager::export_words(&db, file)?;
+                word_manager::export_words(&db, file, true)?;
                 PostAction::None
             }
             Commands::Import { file } => {
-                word_manager::import_words(&db, file)?;
+                word_manager::import_words(&db, file, true)?;
                 PostAction::None
             }
         }

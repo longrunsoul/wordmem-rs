@@ -1,11 +1,13 @@
-use std::{fs, io};
-use std::collections::HashMap;
-use std::io::{BufRead, Write};
-use std::path::Path;
+use std::{
+    collections::HashMap,
+    fs,
+    io::{self, BufRead, Write},
+    path::Path,
+};
 
 use anyhow::Result;
 
-use crate::infra::*;
+use crate::infra::{Db, SqlVal, StdResult, Word};
 
 fn read_one_word<T>(lines: &mut T) -> Result<Option<Word>>
     where T: Iterator<Item=StdResult<String, std::io::Error>> {
@@ -114,7 +116,7 @@ pub fn clear_words(db: &Db) -> Result<bool> {
     let mut lines = stdin.lock().lines();
     let answer = lines.next().unwrap_or(Ok("N".to_string()))?.trim().to_lowercase();
     if answer != "y" && answer != "yes" {
-        return Ok(false)
+        return Ok(false);
     }
 
     db.clear_words()?;
@@ -122,24 +124,24 @@ pub fn clear_words(db: &Db) -> Result<bool> {
     Ok(true)
 }
 
-pub fn import_words<T>(db: &Db, file: T) -> Result<()>
+pub fn import_words<T>(db: &Db, file: T, print_info: bool) -> Result<()>
     where T: AsRef<Path> {
-    println!("Importing words from {}...", file.as_ref().display());
+    if print_info { println!("Importing words from {}...", file.as_ref().display()); }
     let json = fs::read_to_string(file)?;
     let name_meanings_pairs: HashMap<String, String> = serde_json::from_str(&json)?;
     for (n, m) in name_meanings_pairs {
-        println!("  {}={}", n, m);
+        if print_info { println!("  {}={}", n, m); }
         let word = Word::from_name_and_meanings(&n, &m);
         db.upsert_by_name(&word)?;
     }
 
-    println!("All words imported.");
+    if print_info { println!("All words imported."); }
     Ok(())
 }
 
-pub fn export_words<T>(db: &Db, file: T) -> Result<()>
+pub fn export_words<T>(db: &Db, file: T, print_info: bool) -> Result<()>
     where T: AsRef<Path> {
-    println!("Exporting words to {}", file.as_ref().display());
+    if print_info { println!("Exporting words to {}", file.as_ref().display()); }
     let mut name_meanings_pairs = HashMap::new();
     for w in db.get_all_words()? {
         name_meanings_pairs.insert(w.name, w.meanings);
@@ -149,6 +151,6 @@ pub fn export_words<T>(db: &Db, file: T) -> Result<()>
     let mut file = fs::OpenOptions::new().truncate(true).write(true).open(file)?;
     file.write_all(json.as_bytes())?;
 
-    println!("All words exported.");
+    if print_info { println!("All words exported."); }
     Ok(())
 }

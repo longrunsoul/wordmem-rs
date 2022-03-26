@@ -1,12 +1,16 @@
-use std::env;
-use std::path::{Path, PathBuf};
+use std::{
+    env,
+    path::{Path, PathBuf},
+};
 
 use anyhow::Result;
 use chrono::Utc;
 use sqlite::Connection;
 
-use crate::infra::sql_value::*;
-use crate::infra::model::*;
+use crate::infra::{
+    model::*,
+    sql_value::*,
+};
 
 pub struct Db {
     conn: Connection,

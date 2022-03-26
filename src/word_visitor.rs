@@ -1,11 +1,12 @@
-use std::io;
-use std::io::BufRead;
+use std::io::{self, BufRead};
 
 use anyhow::Result;
 use chrono::{Duration, Utc};
 
-use crate::infra::*;
-use crate::revisit_planner as planner;
+use crate::{
+    infra::Db,
+    revisit_planner,
+};
 
 fn test_one_word(db: &Db) -> Result<bool> {
     let word = db.get_one_word_to_test()?;
@@ -71,9 +72,9 @@ fn test_one_word(db: &Db) -> Result<bool> {
     let now = Utc::now();
     word.last_visit = now;
     word.period_days = if is_answer_correct {
-        planner::get_next_period_days(word.period_days)
+        revisit_planner::get_next_period_days(word.period_days)
     } else {
-        planner::get_last_period_days(word.period_days)
+        revisit_planner::get_last_period_days(word.period_days)
     };
     word.next_visit = now + Duration::days(word.period_days as i64);
     db.update_word(&word)?;
