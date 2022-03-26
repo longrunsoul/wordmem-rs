@@ -149,5 +149,6 @@ pub fn export_words<T>(db: &Db, file: T) -> Result<()>
     let mut file = fs::OpenOptions::new().truncate(true).write(true).open(file)?;
     file.write_all(json.as_bytes())?;
 
+    println!("All words exported.");
     Ok(())
 }
