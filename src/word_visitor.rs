@@ -7,7 +7,7 @@ use chrono::{Duration, Utc};
 use crate::infra::*;
 use crate::revisit_planner as planner;
 
-pub fn test_one_word(db: &Db) -> Result<bool> {
+fn test_one_word(db: &Db) -> Result<bool> {
     let word = db.get_one_word_to_test()?;
     if word.is_none() {
         println!("No word planned to test at now.");

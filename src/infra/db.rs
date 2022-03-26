@@ -1,5 +1,5 @@
 use std::env;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use chrono::Utc;
@@ -27,13 +27,13 @@ impl Db {
         db_path
     }
 
-    pub fn new(db: Option<&str>) -> Result<Db> {
-        Ok(Db {
-            conn: match db {
-                None => Connection::open(Db::get_default_db_path())?,
-                Some(db) => Connection::open(db)?,
-            },
-        })
+    pub fn new_mem() -> Result<Db> {
+        Ok(Db { conn: Connection::open(":memory:")? })
+    }
+
+    pub fn new<T>(file: T) -> Result<Db>
+        where T: AsRef<Path> {
+        Ok(Db { conn: Connection::open(file)? })
     }
 
     pub fn init_db(&self) -> Result<()> {
@@ -153,7 +153,7 @@ mod db_tests {
 
     #[test]
     fn test_crud() -> Result<()> {
-        let db = Db::new(Some(":memory:"))?;
+        let db = Db::new_mem()?;
         db.init_db()?;
 
         // create

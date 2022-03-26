@@ -25,14 +25,16 @@ Features:
 - Words can be exported to/imported from file.
 
 Commandline interface:
-- `wordmem login`: login to email to enable syncing.
-- `wordmem logout`: logout to disable syncing.
 - `wordmem take`: take words from user.
-- `wordmem change <word>`: change explanation of an existing word.
-- `wordmem delete <word>`: delete a word.
-- `wordmem search <word>`: search a word on internet.
-- `wordmem clear`: remove all words.
 - `wordmem test`: do tests.
+- `wordmem signin`: sign in email to enable syncing.
+- `wordmem signout`: sign out email to disable syncing.
+- `wordmem push`: forcibly push data to email to keep synced.
+- `wordmem pull`: forcibly pull data from email to keep synced.
+- `wordmem change <word>`: change meanings of an existing word.
+- `wordmem delete <word>`: delete a word.
+- `wordmem open <word>`: open a word on https://translate.bing.com.
+- `wordmem clear`: remove all words in DB.
 - `wordmem export <file>`: export words to a file.
 - `wordmem import <file>`: import words from a file.
 

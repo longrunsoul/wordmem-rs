@@ -113,13 +113,21 @@ pub fn delete_word(db: &Db, name: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn search_word(name: &str) -> Result<()> {
-    open::that(format!("https://translate.google.com/?text={}", name.trim()))?;
+pub fn open_word(name: &str) -> Result<()> {
+    open::that(format!("https://translate.bing.com/?text={}", name.trim()))?;
     Ok(())
 }
 
-pub fn clear_words(db: &Db) -> Result<()> {
+pub fn clear_words(db: &Db) -> Result<bool> {
+    print!("Are you sure? [Y/N]: ");
+    let stdin = io::stdin();
+    let mut lines = stdin.lock().lines();
+    let answer = lines.next().unwrap_or(Ok("N".to_string()))?.trim().to_lowercase();
+    if answer != "y" && answer != "yes" {
+        return Ok(false)
+    }
+
     db.clear_words()?;
     println!("Words cleared.");
-    Ok(())
+    Ok(true)
 }
