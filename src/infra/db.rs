@@ -13,6 +13,20 @@ pub struct Db {
 }
 
 impl Db {
+    fn init(&self) -> Result<()> {
+        self.conn.execute("\
+            CREATE TABLE IF NOT EXISTS word (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                meanings TEXT NOT NULL,
+                period_days INTEGER NOT NULL,
+                last_visit INTEGER NOT NULL,
+                next_visit INTEGER NOT NULL
+            );
+        ")?;
+        Ok(())
+    }
+
     pub fn get_default_db_name() -> String {
         "wordmem.sqlite".to_string()
     }
@@ -28,26 +42,16 @@ impl Db {
     }
 
     pub fn new_mem() -> Result<Db> {
-        Ok(Db { conn: Connection::open(":memory:")? })
+        let db = Db { conn: Connection::open(":memory:")? };
+        db.init()?;
+        Ok(db)
     }
 
     pub fn new<T>(file: T) -> Result<Db>
         where T: AsRef<Path> {
-        Ok(Db { conn: Connection::open(file)? })
-    }
-
-    pub fn init_db(&self) -> Result<()> {
-        self.conn.execute("\
-            CREATE TABLE IF NOT EXISTS word (
-                id INTEGER PRIMARY KEY,
-                name TEXT NOT NULL,
-                meanings TEXT NOT NULL,
-                period_days INTEGER NOT NULL,
-                last_visit INTEGER NOT NULL,
-                next_visit INTEGER NOT NULL
-            );
-        ")?;
-        Ok(())
+        let db = Db { conn: Connection::open(file)? };
+        db.init()?;
+        Ok(db)
     }
 
     pub fn get_by_col(&self, col: &str, val: SqlVal) -> Result<Option<Word>> {
@@ -154,7 +158,6 @@ mod db_tests {
     #[test]
     fn test_crud() -> Result<()> {
         let db = Db::new_mem()?;
-        db.init_db()?;
 
         // create
         let mut word_new = Word {

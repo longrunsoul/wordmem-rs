@@ -41,6 +41,10 @@ impl SyncKeys {
         Ok(Some(keys))
     }
 
+    pub fn exists() -> Result<bool> {
+        Ok(SyncKeys::get_keys()?.is_some())
+    }
+
     pub fn set_keys(&self) -> Result<()> {
         keyring::Entry::new(KEYRING_SERVICE, "imap_server").set_password(&self.imap_server)?;
         keyring::Entry::new(KEYRING_SERVICE, "smtp_server").set_password(&self.smtp_server)?;

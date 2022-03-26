@@ -34,7 +34,7 @@ pub fn test_sync_keys(keys: &SyncKeys) -> Result<bool> {
     let tls = native_tls::TlsConnector::builder().build()?;
     let client = imap::connect((keys.imap_server.as_str(), 993), keys.imap_server.as_str(), &tls)?;
     let imap_session = client.login(&keys.email, &keys.password);
-    if let Err((e, c)) = imap_session {
+    if let Err((e, _c)) = imap_session {
         println!("Failed. Error: {}", e);
         return Ok(false);
     }
@@ -75,14 +75,12 @@ pub fn read_sync_keys() -> Result<SyncKeys> {
 }
 
 pub fn push_data_to_email() -> Result<bool> {
-    let sync_keys = SyncKeys::get_keys()?;
-    if sync_keys.is_none() {
+    if !SyncKeys::exists()? {
         println!("Email not signed in. Syncing aborted.");
         return Ok(false);
     }
 
     println!("Pushing data to email...");
-    let sync_keys = sync_keys.unwrap();
     SyncData{
         data_time: Utc::now(),
         db_bytes: fs::read(Db::get_default_db_path())?
@@ -93,14 +91,12 @@ pub fn push_data_to_email() -> Result<bool> {
 }
 
 pub fn pull_data_from_email() -> Result<bool> {
-    let sync_keys = SyncKeys::get_keys()?;
-    if sync_keys.is_none() {
+    if !SyncKeys::exists()? {
         println!("Email not signed in. Syncing aborted.");
         return Ok(false);
     }
 
     println!("Pulling data from email...");
-    let sync_keys = sync_keys.unwrap();
     let sync_data = SyncData::get_data()?;
     if sync_data.is_none() {
         println!("Data not found in email. Syncing aborted.");
