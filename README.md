@@ -1,12 +1,15 @@
 # wordmem
+
 `wordmem` is a helper tool for language learning, focusing on vocabulary. It takes words and explanation from user, and then makes user revisit them periodically so that user can memorize it.
 Currently, it is an in-progress project.
 
 ### IDEAS
+
 The application splits to 3 parts:
 - `word-manager`, which takes and manages words from user
 - `word-visitor`, which makes user revisit the words periodically
 - `revisit-planner`, which plans the revisiting schedule
+- `db-syncer`, which syncs data from/to email
 
 Revisiting means test. User need to spell out the word and the explanation respectively in 2 passes.
 
@@ -14,11 +17,12 @@ The revisiting is planed to start at the 1st, 2nd, 4th, 8th, 16th, 32end, 64th, 
 
 When taking words from user, user should only input a single meaning at one time, but different meanings at each time. That is, multiple meanings will be taken for the same word as time goes.
 
-And, while doing the test, user should separate different meanings by "`;`" or "`,`". And user should answer all the meanings which are taken util then.
+And, while doing the test, user should separate different meanings by "`;`". And user should answer all the meanings which are taken util then.
 
 Additionally, punctuations will be normalized when comparing answers.
 
 ### DESIGN
+
 Features:
 - Storage can be synced via email.
 - Security keys should be stored in system keyring.
@@ -42,3 +46,5 @@ Implementation:
 - SQLite for storage of words.
 - JSON format for exported file of words.
 - Compressed .sqlite file as attachment and with INI format config info as body in email for syncing.
+
+License: GPL3
