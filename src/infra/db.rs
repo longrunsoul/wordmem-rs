@@ -21,7 +21,7 @@ impl Db {
         self.conn.execute("\
             CREATE TABLE IF NOT EXISTS word (
                 id INTEGER PRIMARY KEY,
-                name TEXT NOT NULL,
+                name TEXT NOT NULL UNIQUE,
                 meanings TEXT NOT NULL,
                 period_days INTEGER NOT NULL,
                 last_visit INTEGER NOT NULL,

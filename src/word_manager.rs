@@ -78,6 +78,7 @@ pub fn change_word(db: &Db, name: &str) -> Result<()> {
     }
 
     print!("Enter the meanings: ");
+    io::stdout().flush()?;
     let stdin = io::stdin();
     let mut lines = stdin.lock().lines();
     let meanings = lines.next().unwrap()?;
@@ -112,6 +113,7 @@ pub fn open_word(name: &str) -> Result<()> {
 
 pub fn clear_words(db: &Db) -> Result<bool> {
     print!("Are you sure? [Y/N]: ");
+    io::stdout().flush()?;
     let stdin = io::stdin();
     let mut lines = stdin.lock().lines();
     let answer = lines.next().unwrap_or(Ok("N".to_string()))?.trim().to_lowercase();
@@ -148,7 +150,7 @@ pub fn export_words<T>(db: &Db, file: T, print_info: bool) -> Result<()>
     }
 
     let json = serde_json::to_string(&name_meanings_pairs)?;
-    let mut file = fs::OpenOptions::new().truncate(true).write(true).open(file)?;
+    let mut file = fs::OpenOptions::new().create(true).truncate(true).write(true).open(file)?;
     file.write_all(json.as_bytes())?;
 
     if print_info { println!("All words exported."); }

@@ -1,6 +1,6 @@
 use std::{
     fs,
-    io::{self, BufRead},
+    io::{self, BufRead, Write},
 };
 
 use anyhow::Result;
@@ -60,16 +60,19 @@ pub fn read_sync_keys() -> Result<SyncKeys> {
     let stdin = io::stdin();
     let mut lines = stdin.lock().lines();
 
-    print!("Enter IMAP server:");
+    print!("Enter IMAP server: ");
+    io::stdout().flush()?;
     let imap_server = lines.next().unwrap()?;
 
-    print!("Enter SMTP server:");
+    print!("Enter SMTP server: ");
+    io::stdout().flush()?;
     let smtp_server = lines.next().unwrap()?;
 
-    print!("Enter email:");
+    print!("Enter email: ");
+    io::stdout().flush()?;
     let email = lines.next().unwrap()?;
 
-    let password = rpassword::prompt_password("Enter password:")?;
+    let password = rpassword::prompt_password("Enter password: ")?;
 
     Ok(SyncKeys {
         imap_server,
@@ -81,7 +84,7 @@ pub fn read_sync_keys() -> Result<SyncKeys> {
 
 pub fn push_data_to_email() -> Result<bool> {
     if !SyncKeys::exists()? {
-        println!("Email not signed in. Syncing aborted.");
+        println!("Email not signed in. No need to sync.");
         return Ok(false);
     }
 
@@ -97,7 +100,7 @@ pub fn push_data_to_email() -> Result<bool> {
 
 pub fn pull_data_from_email() -> Result<bool> {
     if !SyncKeys::exists()? {
-        println!("Email not signed in. Syncing aborted.");
+        println!("Email not signed in. No need to sync.");
         return Ok(false);
     }
 
