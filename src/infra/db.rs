@@ -146,6 +146,38 @@ impl Db {
         let word = result.unwrap()?;
         Ok(Some(word))
     }
+
+    pub fn upsert_by_name(&self, word: &Word) -> Result<()> {
+        self.conn.execute(
+            format!(
+                "INSERT INTO
+                    word (name, meanings, period_days, last_visit, next_visit)
+                    VALUES ({}, {}, {}, {}, {})
+                ON CONFLICT(name) DO UPDATE SET
+                    meanings={};",
+                SqlVal::Text(&word.name),
+                SqlVal::Text(&word.meanings),
+                SqlVal::Integer(word.period_days as i64),
+                SqlVal::Integer(word.last_visit.timestamp()),
+                SqlVal::Integer(word.next_visit.timestamp()),
+                SqlVal::Text(&word.meanings),
+            )
+        )?;
+
+        Ok(())
+    }
+
+    pub fn get_all_words(&self) -> Result<Vec<Word>> {
+        let mut words = Vec::new();
+        self.conn.iterate(
+            "SELECT * FROM word",
+            |pairs| {
+                words.push(Word::from_sqlite_pairs(pairs));
+                true
+            },
+        )?;
+        words.into_iter().collect()
+    }
 }
 
 #[cfg(test)]

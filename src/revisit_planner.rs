@@ -1,8 +1,4 @@
 
-pub fn get_init_period_days() -> u16 {
-    1
-}
-
 pub fn get_last_period_days(current_period_days: u16) -> u16 {
     if current_period_days == 1 {
         return 1;

@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
 
 use anyhow::Result;
-use chrono::{DateTime, Utc, NaiveDateTime};
+use chrono::{DateTime, Utc, NaiveDateTime, Duration};
 
 pub type StdResult<T, E> = std::result::Result<T, E>;
 
@@ -33,6 +33,20 @@ impl Word {
         }
 
         cmp_map
+    }
+
+    pub fn from_name_and_meanings(name: &str, meanings: &str) -> Word {
+        let now = Utc::now();
+        let period_days = 1;
+        Word {
+            name: name.trim().to_string(),
+            meanings: Word::norm_meanings(meanings),
+
+            id: None,
+            period_days,
+            last_visit: now,
+            next_visit: now + Duration::days(period_days as i64),
+        }
     }
 
     pub fn from_sqlite_pairs(pairs: &[(&str, Option<&str>)]) -> Result<Word> {

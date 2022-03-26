@@ -102,10 +102,12 @@ fn main() -> Result<()> {
                 }
             }
             Commands::Export { file } => {
-                todo!();
+                word_manager::export_words(&db, file)?;
+                PostAction::None
             }
             Commands::Import { file } => {
-                todo!();
+                word_manager::import_words(&db, file)?;
+                PostAction::None
             }
         }
     };

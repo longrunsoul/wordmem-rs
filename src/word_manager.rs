@@ -1,11 +1,11 @@
-use std::io;
-use std::io::BufRead;
+use std::{fs, io};
+use std::collections::HashMap;
+use std::io::{BufRead, Write};
+use std::path::Path;
 
 use anyhow::Result;
-use chrono::{Utc, Duration};
 
 use crate::infra::*;
-use crate::revisit_planner as planner;
 
 fn read_one_word<T>(lines: &mut T) -> Result<Option<Word>>
     where T: Iterator<Item=StdResult<String, std::io::Error>> {
@@ -29,25 +29,15 @@ fn read_one_word<T>(lines: &mut T) -> Result<Option<Word>>
         }
 
         let (name, meanings) = pair.unwrap();
-        let meanings = Word::norm_meanings(meanings);
-        if meanings.is_empty() {
-            println!("Meanings cannot be empty.");
+        let name = name.trim();
+        let meanings = meanings.trim();
+        if name.is_empty() || meanings.is_empty() {
+            println!("Name or meanings cannot be empty.");
             println!("Enter empty line to end listing.");
             continue;
         }
 
-        let now = Utc::now();
-        let period_days = planner::get_init_period_days();
-        let word = Word {
-            name: name.trim().to_string(),
-            meanings,
-
-            id: None,
-            period_days,
-            last_visit: now,
-            next_visit: now + Duration::days(period_days as i64),
-        };
-
+        let word = Word::from_name_and_meanings(name, meanings);
         break Ok(Some(word));
     }
 }
@@ -130,4 +120,34 @@ pub fn clear_words(db: &Db) -> Result<bool> {
     db.clear_words()?;
     println!("Words cleared.");
     Ok(true)
+}
+
+pub fn import_words<T>(db: &Db, file: T) -> Result<()>
+    where T: AsRef<Path> {
+    println!("Importing words from {}...", file.as_ref().display());
+    let json = fs::read_to_string(file)?;
+    let name_meanings_pairs: HashMap<String, String> = serde_json::from_str(&json)?;
+    for (n, m) in name_meanings_pairs {
+        println!("  {}={}", n, m);
+        let word = Word::from_name_and_meanings(&n, &m);
+        db.upsert_by_name(&word)?;
+    }
+
+    println!("All words imported.");
+    Ok(())
+}
+
+pub fn export_words<T>(db: &Db, file: T) -> Result<()>
+    where T: AsRef<Path> {
+    println!("Exporting words to {}", file.as_ref().display());
+    let mut name_meanings_pairs = HashMap::new();
+    for w in db.get_all_words()? {
+        name_meanings_pairs.insert(w.name, w.meanings);
+    }
+
+    let json = serde_json::to_string(&name_meanings_pairs)?;
+    let mut file = fs::OpenOptions::new().truncate(true).write(true).open(file)?;
+    file.write_all(json.as_bytes())?;
+
+    Ok(())
 }
