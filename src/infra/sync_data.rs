@@ -1,4 +1,11 @@
+use std::io::{Read, Seek, SeekFrom, Write};
+
 use anyhow::{Result, Error};
+use bzip2::{
+    Compression,
+    write::BzEncoder,
+    read::BzDecoder,
+};
 use chrono::{DateTime, Utc};
 use mail_parser::{self, BodyPart};
 use lettre::{
@@ -7,6 +14,7 @@ use lettre::{
     transport::smtp::authentication::Credentials,
 };
 use regex::Regex;
+use tar::Archive;
 
 use crate::infra::{Db, SyncKeys};
 
@@ -54,16 +62,25 @@ impl SyncData {
         let last_cap = regex.captures_iter(subject).last().unwrap();
         let time_str = last_cap.name("info").unwrap().as_str();
         let data_time = DateTime::parse_from_rfc3339(time_str)?.with_timezone(&Utc);
+        let bzip_bytes = message.get_attachment(0).unwrap().unwrap_binary().get_contents();
+
+        // extract db bytes
+        let mut db_bytes = Vec::new();
+        {
+            // decompress bzip bytes
+            let mut tar_bytes = Vec::new();
+            let mut decompressor = BzDecoder::new(bzip_bytes);
+            decompressor.read_to_end(&mut tar_bytes)?;
+
+            // extract tar
+            let mut tar = Archive::new(tar_bytes.as_slice());
+            let mut db_file = tar.entries()?.into_iter().next().unwrap()?;
+            db_file.read_to_end(&mut db_bytes)?;
+        }
+
         Ok(Some(SyncData {
             data_time,
-            db_bytes: message
-                .get_attachment(0)
-                .unwrap()
-                .unwrap_binary()
-                .get_contents()
-                .iter()
-                .cloned()
-                .collect(),
+            db_bytes,
         }))
     }
 
@@ -71,6 +88,25 @@ impl SyncData {
         let sync_keys = SyncKeys::get_keys()?;
         if sync_keys.is_none() {
             return Err(Error::msg("No keys found for syncing"));
+        }
+
+        // tar the db file and get bytes
+        let mut tar_bytes = Vec::new();
+        {
+            let mut tar = tar::Builder::new(&mut tar_bytes);
+            let mut db_file = tempfile::tempfile()?;
+            db_file.write_all(&self.db_bytes)?;
+            db_file.seek(SeekFrom::Start(0))?;
+            tar.append_file(Db::get_default_db_name(), &mut db_file)?;
+            tar.finish()?;
+        }
+
+        // bzip the tar bytes
+        let mut bzip_bytes = Vec::new();
+        {
+            let mut compressor = BzEncoder::new(&mut bzip_bytes, Compression::default());
+            compressor.write_all(&tar_bytes)?;
+            compressor.finish()?;
         }
 
         let sync_keys = sync_keys.unwrap();
@@ -81,9 +117,9 @@ impl SyncData {
             .multipart(
                 MultiPart::builder()
                     .singlepart(
-                        Attachment::new(Db::get_default_db_name())
+                        Attachment::new(format!("{}.tar.bz2", Db::get_default_db_name()))
                             .body(
-                                self.db_bytes,
+                                bzip_bytes,
                                 ContentType::parse("application/octet-stream").unwrap(),
                             )
                     )
