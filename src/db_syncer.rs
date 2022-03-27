@@ -4,7 +4,7 @@ use std::{
 };
 
 use anyhow::Result;
-use chrono::Utc;
+use chrono::{SecondsFormat, Utc};
 use lettre::{
     SmtpTransport,
     Transport,
@@ -20,7 +20,7 @@ pub fn test_sync_keys(keys: &SyncKeys) -> Result<bool> {
     println!("Testing sync keys...");
 
     println!("Sending a test mail");
-    let now = Utc::now().to_rfc3339();
+    let now = Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true);
     let subject = format!("[wordmem][test][{}]", now);
     let message = lettre::Message::builder()
         .from(keys.email.parse().unwrap())

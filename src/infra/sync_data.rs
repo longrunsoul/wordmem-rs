@@ -6,7 +6,7 @@ use bzip2::{
     write::BzEncoder,
     read::BzDecoder,
 };
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, SecondsFormat, Utc};
 use mail_parser::{self, BodyPart};
 use lettre::{
     self, SmtpTransport, Transport,
@@ -113,7 +113,7 @@ impl SyncData {
         let message = lettre::Message::builder()
             .from(sync_keys.email.parse().unwrap())
             .to(sync_keys.email.parse().unwrap())
-            .subject(format!("[wordmem][sync][{}]", self.data_time.to_rfc3339()))
+            .subject(format!("[wordmem][sync][{}]", self.data_time.to_rfc3339_opts(SecondsFormat::Secs, true)))
             .multipart(
                 MultiPart::builder()
                     .singlepart(
