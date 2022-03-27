@@ -107,7 +107,7 @@ pub fn delete_word(db: &Db, name: &str) -> Result<()> {
 }
 
 pub fn open_word(name: &str) -> Result<()> {
-    open::that(format!("https://translate.bing.com/?text={}", name.trim()))?;
+    open::that_in_background(format!("https://translate.bing.com/?text={}", name.trim()));
     Ok(())
 }
 
