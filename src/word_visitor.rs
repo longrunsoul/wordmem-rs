@@ -18,6 +18,7 @@ fn test_one_word(db: &Db) -> Result<bool> {
     let mut is_answer_correct = true;
 
     let mut word = word.unwrap();
+    println!();
     println!("What are the meanings of [{}]:", word.name);
     println!("Enter empty line to abort test.");
 
