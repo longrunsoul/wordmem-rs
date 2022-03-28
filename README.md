@@ -1,7 +1,8 @@
 # wordmem-rs
 
 `wordmem` is a helper tool for language learning, focusing on vocabulary. It takes words and explanation from user, and then makes user revisit them periodically so that user can memorize it.
-Currently, it is an in-progress project.
+
+Note: The syncing-by-email feature does not support IMAP ID extension and is not tested yet.
 
 ### IDEAS
 
