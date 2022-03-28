@@ -135,7 +135,8 @@ impl Db {
         let now = Utc::now();
         self.conn.iterate(
             format!(
-                "SELECT * FROM word WHERE next_visit <= {} ORDER BY next_visit ASC LIMIT 1;",
+                // make next visit due ahead of 18 hours(64800 seconds) to ignore the offset in a day
+                "SELECT * FROM word WHERE (next_visit - 64800) <= {} ORDER BY next_visit ASC LIMIT 1;",
                 SqlVal::Integer(now.timestamp())
             ),
             |pairs| {
