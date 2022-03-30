@@ -45,7 +45,7 @@ impl SyncKeys {
         Ok(SyncKeys::get_keys()?.is_some())
     }
 
-    pub fn set_keys(&self) -> Result<()> {
+    pub fn store_keys(&self) -> Result<()> {
         keyring::Entry::new(KEYRING_SERVICE, "imap_server").set_password(&self.imap_server)?;
         keyring::Entry::new(KEYRING_SERVICE, "smtp_server").set_password(&self.smtp_server)?;
         keyring::Entry::new(KEYRING_SERVICE, "email").set_password(&self.email)?;

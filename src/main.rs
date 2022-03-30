@@ -120,7 +120,7 @@ fn main() -> Result<()> {
             Commands::Signin => {
                 let sync_keys = db_syncer::read_sync_keys()?;
                 if db_syncer::test_sync_keys(&sync_keys)? {
-                    sync_keys.set_keys()?;
+                    sync_keys.store_keys()?;
                 }
                 PostAction::None
             }
