@@ -152,21 +152,31 @@ impl Db {
         Ok(Some(word))
     }
 
-    pub fn upsert_by_name(&self, word: &Word) -> Result<()> {
+    pub fn upsert_by_name(&self, word: &Word, update_visit_info: bool) -> Result<()> {
         self.conn.execute(
             format!(
                 "INSERT INTO
                     word (name, meanings, period_days, last_visit, next_visit)
                     VALUES ({}, {}, {}, {}, {})
                 ON CONFLICT(name) DO UPDATE SET
-                    meanings={};",
+                    meanings={}",
                 SqlVal::Text(&word.name),
                 SqlVal::Text(&word.meanings),
                 SqlVal::Integer(word.period_days as i64),
                 SqlVal::Integer(word.last_visit.timestamp()),
                 SqlVal::Integer(word.next_visit.timestamp()),
                 SqlVal::Text(&word.meanings),
-            )
+            ) + if update_visit_info {
+                format!(
+                    ",
+                    last_visit={},
+                    next_visit={};",
+                    SqlVal::Integer(word.last_visit.timestamp()),
+                    SqlVal::Integer(word.next_visit.timestamp()),
+                )
+            } else {
+                ";".to_string()
+            }.as_str()
         )?;
 
         Ok(())

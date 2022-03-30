@@ -11,10 +11,7 @@ use lettre::{
     transport::smtp::authentication::Credentials,
 };
 
-use crate::{
-    word_manager,
-    infra::{Db, SyncData, SyncKeys},
-};
+use crate::infra::{Db, SyncData, SyncKeys};
 
 pub fn test_sync_keys(keys: &SyncKeys) -> Result<bool> {
     println!("Testing sync keys...");
@@ -89,9 +86,9 @@ pub fn push_data_to_email() -> Result<bool> {
     }
 
     println!("Pushing data to email...");
-    SyncData{
+    SyncData {
         data_time: Utc::now(),
-        db_bytes: fs::read(Db::get_default_db_path())?
+        db_bytes: fs::read(Db::get_default_db_path())?,
     }.push_data()?;
 
     println!("Success.");
@@ -113,11 +110,13 @@ pub fn pull_data_from_email() -> Result<bool> {
 
     println!("Merging data...");
     let sync_data = sync_data.unwrap();
-    let email_json = tempfile::Builder::new().tempfile()?;
     let email_db = tempfile::Builder::new().tempfile()?;
     fs::write(email_db.path(), sync_data.db_bytes)?;
-    word_manager::export_words(&Db::new(email_db.path())?, email_json.path(), false)?;
-    word_manager::import_words(&Db::new(Db::get_default_db_path())?, email_json.path(), false)?;
+    let words = Db::new(email_db.path())?.get_all_words()?;
+    let local_db = Db::new(Db::get_default_db_path())?;
+    for w in words {
+        local_db.upsert_by_name(&w, true)?;
+    }
 
     println!("Success.");
     Ok(true)

@@ -150,11 +150,11 @@ fn main() -> Result<()> {
                 }
             }
             Commands::Export { file } => {
-                word_manager::export_words(&db, file, true)?;
+                word_manager::export_words(&db, file)?;
                 PostAction::None
             }
             Commands::Import { file } => {
-                word_manager::import_words(&db, file, true)?;
+                word_manager::import_words(&db, file)?;
                 PostAction::None
             }
         }
