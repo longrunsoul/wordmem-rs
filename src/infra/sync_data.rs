@@ -39,7 +39,7 @@ impl SyncData {
         let mut message_list;
         loop {
             imap_session.select("INBOX")?;
-            let mut seq_list: Vec<_> = imap_session.search("[wordmem][sync]")?.into_iter().collect();
+            let mut seq_list: Vec<_> = imap_session.search("SUBJECT [wordmem][sync]")?.into_iter().collect();
             if seq_list.is_empty() {
                 return Ok(None);
             }

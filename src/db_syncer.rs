@@ -43,7 +43,7 @@ pub fn test_sync_keys(keys: &SyncKeys) -> Result<bool> {
 
     let mut imap_session = imap_session.unwrap();
     imap_session.select("INBOX")?;
-    let seq_list = imap_session.search(&subject)?;
+    let seq_list = imap_session.search(format!("SUBJECT {}", subject))?;
     if seq_list.is_empty() {
         println!("Failed. Test mail not found in INBOX");
         return Ok(false);
