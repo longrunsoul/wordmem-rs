@@ -152,7 +152,7 @@ pub fn import_words<T>(db: &Db, file: T) -> Result<()>
 
 pub fn export_words<T>(db: &Db, file: T) -> Result<()>
     where T: AsRef<Path> {
-    println!("Exporting words to {}", file.as_ref().display());
+    println!("Exporting words to {}...", file.as_ref().display());
     let mut name_meanings_pairs = HashMap::new();
     for w in db.get_all_words()? {
         name_meanings_pairs.insert(w.name, w.meanings);
