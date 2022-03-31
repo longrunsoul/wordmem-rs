@@ -54,8 +54,6 @@ pub fn read_words_to_db(db: &Db) -> Result<usize> {
     let mut stdin_lines = stdin.lock().lines();
 
     while let Some(word) = read_one_word(&mut stdin_lines)? {
-        count += 1;
-
         let existing = db.get_by_col("name", SqlVal::Text(&word.name.trim().to_lowercase()))?;
         if existing.is_none() {
             db.insert_word(&word)?;
@@ -65,6 +63,8 @@ pub fn read_words_to_db(db: &Db) -> Result<usize> {
         let mut existing = existing.unwrap();
         existing.merge_meanings(&word.meanings);
         db.update_word(&existing)?;
+
+        count += 1;
     }
 
     Ok(count)
