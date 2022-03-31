@@ -77,12 +77,21 @@ pub fn change_word(db: &Db, name: &str) -> Result<()> {
         return Ok(());
     }
 
-    print!("Enter the meanings: ");
-    io::stdout().flush()?;
+    let mut meanings;
     let stdin = io::stdin();
     let mut lines = stdin.lock().lines();
-    let meanings = lines.next().unwrap()?;
-    let meanings = Word::norm_meanings(&meanings);
+    loop {
+        print!("Enter the meanings: ");
+        io::stdout().flush()?;
+        meanings = lines.next().unwrap()?;
+        meanings = Word::norm_meanings(&meanings);
+        if meanings.is_empty() {
+            println!("Meanings cannot be empty.");
+            continue;
+        }
+
+        break;
+    }
 
     let mut word = word.unwrap();
     word.meanings = meanings;
