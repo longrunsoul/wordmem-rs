@@ -45,11 +45,11 @@ pub fn test_sync_keys(keys: &SyncKeys) -> Result<bool> {
     imap_session.select("INBOX")?;
     let seq_list = imap_session.search(format!("SUBJECT {}", subject))?;
     if seq_list.is_empty() {
-        println!("Failed. Test mail not found in INBOX");
+        println!("Failed. Test mail not found in INBOX.");
         return Ok(false);
     }
 
-    println!("Success");
+    println!("Success.");
     Ok(true)
 }
 
@@ -59,15 +59,15 @@ pub fn read_sync_keys() -> Result<SyncKeys> {
 
     print!("Enter IMAP server: ");
     io::stdout().flush()?;
-    let imap_server = lines.next().unwrap()?;
+    let imap_server = lines.next().unwrap()?.trim().to_string();
 
     print!("Enter SMTP server: ");
     io::stdout().flush()?;
-    let smtp_server = lines.next().unwrap()?;
+    let smtp_server = lines.next().unwrap()?.trim().to_string();
 
     print!("Enter email: ");
     io::stdout().flush()?;
-    let email = lines.next().unwrap()?;
+    let email = lines.next().unwrap()?.trim().to_string();
 
     let password = rpassword::prompt_password("Enter password: ")?;
 
