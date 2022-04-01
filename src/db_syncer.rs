@@ -16,7 +16,7 @@ use crate::infra::{Db, SyncData, SyncKeys};
 pub fn test_sync_keys(keys: &SyncKeys) -> Result<bool> {
     println!("Testing sync keys...");
 
-    println!("Sending a test mail");
+    println!("Sending a test mail...");
     let now = Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true);
     let subject = format!("[wordmem][test][{}]", now);
     let message = lettre::Message::builder()
