@@ -131,12 +131,18 @@ fn main() -> Result<()> {
             Commands::Push => PostAction::PushData,
             Commands::Pull => PostAction::PullData,
             Commands::Change { word } => {
-                word_manager::change_word(&db, word)?;
-                PostAction::PushData
+                if word_manager::change_word(&db, word)? {
+                    PostAction::PushData
+                } else {
+                    PostAction::None
+                }
             }
             Commands::Delete { word } => {
-                word_manager::delete_word(&db, word)?;
-                PostAction::PushData
+                if word_manager::delete_word(&db, word)? {
+                    PostAction::PushData
+                } else {
+                    PostAction::None
+                }
             }
             Commands::Open { word } => {
                 word_manager::open_word(word)?;

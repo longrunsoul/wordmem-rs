@@ -70,11 +70,11 @@ pub fn read_words_to_db(db: &Db) -> Result<usize> {
     Ok(count)
 }
 
-pub fn change_word(db: &Db, name: &str) -> Result<()> {
+pub fn change_word(db: &Db, name: &str) -> Result<bool> {
     let word = db.get_by_col("name", SqlVal::Text(name.trim()))?;
     if word.is_none() {
         println!("Word not found.");
-        return Ok(());
+        return Ok(false);
     }
 
     let mut meanings;
@@ -98,21 +98,21 @@ pub fn change_word(db: &Db, name: &str) -> Result<()> {
     db.update_word(&word)?;
 
     println!("Word changed.");
-    Ok(())
+    Ok(true)
 }
 
-pub fn delete_word(db: &Db, name: &str) -> Result<()> {
+pub fn delete_word(db: &Db, name: &str) -> Result<bool> {
     let word = db.get_by_col("name", SqlVal::Text(name.trim()))?;
     if word.is_none() {
         println!("Word not found.");
-        return Ok(());
+        return Ok(false);
     }
 
     let word = word.unwrap();
     db.del_word(word.id.unwrap())?;
 
     println!("Word deleted.");
-    Ok(())
+    Ok(true)
 }
 
 pub fn open_word(name: &str) -> Result<()> {
