@@ -1,3 +1,4 @@
+use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
@@ -30,7 +31,6 @@ impl Db {
     }
     pub fn get_default_db_path() -> PathBuf {
         let mut db_path = AppConfig::get_default_conf_dir();
-        db_path.push("wordmem");
         db_path.push(Db::get_default_db_name());
 
         db_path
@@ -44,6 +44,14 @@ impl Db {
 
     pub fn new<T>(file: T) -> Result<Db>
         where T: AsRef<Path> {
+        let dir = file.as_ref().parent();
+        if dir.is_some() {
+            let dir = dir.unwrap();
+            if !dir.exists() {
+                fs::create_dir(dir)?;
+            }
+        }
+
         let db = Db { conn: Connection::open(file)? };
         db.init()?;
         Ok(db)
