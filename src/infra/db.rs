@@ -1,16 +1,10 @@
-use std::{
-    env,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use chrono::Utc;
 use sqlite::Connection;
 
-use crate::infra::{
-    model::*,
-    sql_value::*,
-};
+use crate::infra::{AppConfig, SqlVal, Word};
 
 pub struct Db {
     conn: Connection,
@@ -35,11 +29,8 @@ impl Db {
         "wordmem.sqlite".to_string()
     }
     pub fn get_default_db_path() -> PathBuf {
-        let mut db_path =
-            match env::current_exe() {
-                Err(e) => panic!("{}", e),
-                Ok(p) => p,
-            }.parent().unwrap().to_path_buf();
+        let mut db_path = AppConfig::get_conf_dir();
+        db_path.push("wordmem");
         db_path.push(Db::get_default_db_name());
 
         db_path

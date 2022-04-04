@@ -54,7 +54,7 @@ mod db_syncer;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
-use crate::infra::{Db, SyncKeys};
+use crate::infra::{AppConfig, Db, SyncKeys};
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -99,8 +99,9 @@ enum PostAction {
 }
 
 fn main() -> Result<()> {
-    let cli = Cli::parse();
+    AppConfig::init_conf_dir()?;
 
+    let cli = Cli::parse();
     let post_action = {
         let db = Db::new(Db::get_default_db_path())?;
         match &cli.command {
