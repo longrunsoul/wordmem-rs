@@ -16,7 +16,7 @@ use lettre::{
 use regex::Regex;
 use tar::Archive;
 
-use crate::infra::{Db, SyncKeys};
+use crate::infra::{Db, Encryption, SyncConfig};
 
 pub struct SyncData {
     pub data_time: DateTime<Utc>,
@@ -24,16 +24,27 @@ pub struct SyncData {
 }
 
 impl SyncData {
-    pub fn pull_data() -> Result<Option<SyncData>> {
-        let sync_keys = SyncKeys::get_keys()?;
-        if sync_keys.is_none() {
-            return Ok(None);
+    pub fn pull_data(sync_config: Option<&SyncConfig>) -> Result<Option<SyncData>> {
+        if sync_config.is_none() {
+            return Err(Error::msg("Sync config missing."));
         }
 
-        let sync_keys = sync_keys.unwrap();
-        let tls = native_tls::TlsConnector::builder().build()?;
-        let client = imap::connect((sync_keys.imap_server.as_str(), 993), &sync_keys.imap_server, &tls).unwrap();
-        let mut imap_session = client.login(&sync_keys.email, &sync_keys.password).map_err(|e| e.0)?;
+        let sync_config = sync_config.unwrap();
+        let password = sync_config.get_password()?;
+        if password.is_none() {
+            return Err(Error::msg("Sync password missing."));
+        }
+
+        let password = password.unwrap();
+        let mut client = imap::ClientBuilder::new(
+            sync_config.imap_server_host.clone(),
+            sync_config.imap_server_port,
+        );
+        let client = match sync_config.imap_encryption {
+            Encryption::SslTls => &mut client,
+            Encryption::StartTls => client.starttls(),
+        }.native_tls()?;
+        let mut imap_session = client.login(&sync_config.email, &password).map_err(|e| e.0)?;
 
         let message;
         let mut message_list;
@@ -84,10 +95,15 @@ impl SyncData {
         }))
     }
 
-    pub fn push_data(self) -> Result<()> {
-        let sync_keys = SyncKeys::get_keys()?;
-        if sync_keys.is_none() {
-            return Err(Error::msg("No keys found for syncing"));
+    pub fn push_data(&self, sync_config: Option<&SyncConfig>) -> Result<()> {
+        if sync_config.is_none() {
+            return Err(Error::msg("Sync config missing."));
+        }
+
+        let sync_config = sync_config.unwrap();
+        let password = sync_config.get_password()?;
+        if password.is_none() {
+            return Err(Error::msg("Sync password missing."));
         }
 
         // tar the db file and get bytes
@@ -109,10 +125,9 @@ impl SyncData {
             compressor.finish()?;
         }
 
-        let sync_keys = sync_keys.unwrap();
         let message = lettre::Message::builder()
-            .from(sync_keys.email.parse().unwrap())
-            .to(sync_keys.email.parse().unwrap())
+            .from(sync_config.email.parse().unwrap())
+            .to(sync_config.email.parse().unwrap())
             .subject(format!("[wordmem][sync][{}]", self.data_time.to_rfc3339_opts(SecondsFormat::Secs, true)))
             .multipart(
                 MultiPart::builder()
@@ -124,8 +139,14 @@ impl SyncData {
                             )
                     )
             )?;
-        let creds = Credentials::new(sync_keys.email, sync_keys.password);
-        let mailer = SmtpTransport::relay(sync_keys.smtp_server.as_str())?.credentials(creds).build();
+        let mailer =
+            match sync_config.smtp_encryption {
+                Encryption::SslTls => SmtpTransport::relay(&sync_config.smtp_server_host)?,
+                Encryption::StartTls => SmtpTransport::starttls_relay(&sync_config.smtp_server_host)?,
+            }.credentials(Credentials::new(
+                sync_config.email.clone(),
+                password.unwrap(),
+            )).port(sync_config.smtp_server_port).build();
         mailer.send(&message)?;
 
         Ok(())

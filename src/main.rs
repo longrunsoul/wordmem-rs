@@ -54,7 +54,7 @@ mod db_syncer;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
-use crate::infra::{AppConfig, Db, SyncKeys};
+use crate::infra::{AppConfig, Db};
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -99,7 +99,7 @@ enum PostAction {
 }
 
 fn main() -> Result<()> {
-    AppConfig::init_conf_dir()?;
+    let default_conf_file = AppConfig::get_default_conf_path();
 
     let cli = Cli::parse();
     let post_action = {
@@ -119,14 +119,28 @@ fn main() -> Result<()> {
                 PostAction::PushData
             }
             Commands::Signin => {
-                let sync_keys = db_syncer::read_sync_keys()?;
-                if db_syncer::test_sync_keys(&sync_keys)? {
-                    sync_keys.store_keys()?;
+                let sync_config = db_syncer::read_sync_config()?;
+                if db_syncer::test_sync_config(&sync_config)? {
+                    let app_config = AppConfig::load_from_file(&default_conf_file)?;
+                    let mut app_config = app_config.unwrap_or(AppConfig { sync: None });
+                    app_config.sync = Some(sync_config);
+                    app_config.save_to_file(&default_conf_file)?;
+                } else {
+                    sync_config.clear_password()?;
                 }
+
                 PostAction::None
             }
             Commands::Signout => {
-                SyncKeys::clear_keys()?;
+                let app_config = AppConfig::load_from_file(&default_conf_file)?;
+                if let Some(mut app_config) = app_config {
+                    if let Some(sync_config) = app_config.sync {
+                        sync_config.clear_password()?;
+                    }
+                    app_config.sync = None;
+                    app_config.save_to_file(&default_conf_file)?;
+                }
+
                 PostAction::None
             }
             Commands::Push => PostAction::PushData,
@@ -166,10 +180,12 @@ fn main() -> Result<()> {
             }
         }
     };
+
+    let app_config = AppConfig::load_from_file(&default_conf_file)?;
     match post_action {
         PostAction::None => {}
-        PostAction::PushData => { db_syncer::push_data_to_email()?; }
-        PostAction::PullData => { db_syncer::pull_data_from_email()?; }
+        PostAction::PushData => { db_syncer::push_data_to_email(app_config.as_ref())?; }
+        PostAction::PullData => { db_syncer::pull_data_from_email(app_config.as_ref())?; }
     }
 
     Ok(())

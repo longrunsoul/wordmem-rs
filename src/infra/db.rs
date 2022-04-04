@@ -29,7 +29,7 @@ impl Db {
         "wordmem.sqlite".to_string()
     }
     pub fn get_default_db_path() -> PathBuf {
-        let mut db_path = AppConfig::get_conf_dir();
+        let mut db_path = AppConfig::get_default_conf_dir();
         db_path.push("wordmem");
         db_path.push(Db::get_default_db_name());
 
