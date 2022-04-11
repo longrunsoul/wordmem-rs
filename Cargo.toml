@@ -13,7 +13,7 @@ chrono = "0.4.19"
 sqlite = "0.26.0"
 hex = "0.4.3"
 keyring = "1.1.2"
-imap = "3.0.0-alpha.6"
+imap = { git = "https://github.com/longrunsoul/rust-imap", branch = "wordmem" }
 mail-parser = "0.4.5"
 lettre = "0.10.0-rc.4"
 regex = "1.5.5"

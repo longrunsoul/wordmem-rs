@@ -8,7 +8,7 @@ use std::{
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-const KEYRING_SERVICE: &str = "wordmem.lrs";
+use crate::infra::KEYRING_SERVICE;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Encryption {

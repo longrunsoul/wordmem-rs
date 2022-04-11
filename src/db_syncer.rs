@@ -8,7 +8,7 @@ use anyhow::Result;
 use chrono::{SecondsFormat, Utc};
 use lettre::{transport::smtp::authentication::Credentials, SmtpTransport, Transport};
 
-use crate::infra::{AppConfig, Db, Encryption, SyncConfig, SyncData};
+use crate::infra::*;
 
 pub fn test_sync_config(sync_config: &SyncConfig) -> Result<bool> {
     println!("Testing sync config...");
@@ -57,6 +57,11 @@ pub fn test_sync_config(sync_config: &SyncConfig) -> Result<bool> {
     }
 
     let mut imap_session = imap_session.unwrap();
+    let caps = imap_session.capabilities()?;
+    if caps.has_str("ID") {
+        imap_session.run_command_and_check_ok(IMAP_ID_COMMAND)?;
+    }
+
     imap_session.select("INBOX")?;
     let seq_list = imap_session.search(format!("SUBJECT {}", subject))?;
     if seq_list.is_empty() {

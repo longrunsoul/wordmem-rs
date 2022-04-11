@@ -5,7 +5,7 @@ use anyhow::Result;
 use chrono::Utc;
 use sqlite::Connection;
 
-use crate::infra::{AppConfig, SqlVal, Word};
+use crate::infra::{AppConfig, SqlVal, Word, DEFAULT_DB_FILENAME};
 
 pub struct Db {
     conn: Connection,
@@ -27,7 +27,7 @@ impl Db {
     }
 
     pub fn get_default_db_name() -> String {
-        "wordmem.sqlite".to_string()
+        DEFAULT_DB_FILENAME.to_string()
     }
     pub fn get_default_db_path() -> PathBuf {
         let mut db_path = AppConfig::get_default_conf_dir();

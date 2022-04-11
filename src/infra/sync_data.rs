@@ -13,7 +13,7 @@ use mail_parser::{self, BodyPart};
 use regex::Regex;
 use tar::Archive;
 
-use crate::infra::{Db, Encryption, SyncConfig};
+use crate::infra::{Db, Encryption, SyncConfig, IMAP_ID_COMMAND};
 
 pub struct SyncData {
     pub data_time: DateTime<Utc>,
@@ -45,6 +45,11 @@ impl SyncData {
         let mut imap_session = client
             .login(&sync_config.email, &password)
             .map_err(|e| e.0)?;
+
+        let caps = imap_session.capabilities()?;
+        if caps.has_str("ID") {
+            imap_session.run_command_and_check_ok(IMAP_ID_COMMAND)?;
+        }
 
         let message;
         let mut message_list;
