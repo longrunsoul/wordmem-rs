@@ -2,6 +2,8 @@ use std::{
     fs,
     io::{self, BufRead, Write},
     str::FromStr,
+    thread,
+    time::Duration,
 };
 
 use anyhow::Result;
@@ -42,6 +44,9 @@ pub fn test_sync_config(sync_config: &mut SyncConfig) -> Result<bool> {
         return Ok(false);
     }
 
+    println!("Wait 5 seconds before checking email...");
+    thread::sleep(Duration::from_secs(5));
+
     println!("Reading the mail just sent...");
     let mut client =
         imap::ClientBuilder::new(&sync_config.imap_server_host, sync_config.imap_server_port);
@@ -63,12 +68,14 @@ pub fn test_sync_config(sync_config: &mut SyncConfig) -> Result<bool> {
     }
 
     imap_session.select("INBOX")?;
-    let seq_list = imap_session.search(format!("SUBJECT {}", subject))?;
-    if !seq_list.is_empty() {
-        sync_config.workaround_imap_search = Some(false);
+    let seq_list = imap_session.search(format!("SUBJECT {}", subject));
+    if let Ok(seq_list) = seq_list {
+        if !seq_list.is_empty() {
+            sync_config.workaround_imap_search = Some(false);
 
-        println!("Success.");
-        return Ok(true);
+            println!("Success.");
+            return Ok(true);
+        }
     }
 
     let seq_list = imap_session.search("ALL")?;
