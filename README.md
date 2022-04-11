@@ -6,7 +6,7 @@ Note: The syncing-by-email feature does not support IMAP ID extension and is not
 
 ### IDEAS
 
-The application splits to 3 parts:
+The application splits to following parts:
 - `word-manager`, which takes and manages words from user
 - `word-visitor`, which makes user revisit the words periodically
 - `revisit-planner`, which plans the revisiting schedule
