@@ -3,10 +3,7 @@ use std::io::{self, BufRead};
 use anyhow::Result;
 use chrono::{Duration, Utc};
 
-use crate::{
-    infra::Db,
-    revisit_planner,
-};
+use crate::{infra::Db, revisit_planner};
 
 fn test_one_word(db: &Db) -> Result<bool> {
     let word = db.get_one_word_to_test()?;
@@ -44,7 +41,10 @@ fn test_one_word(db: &Db) -> Result<bool> {
         println!("Answer is: [{}]", word.meanings);
     }
 
-    println!("To memorize the spelling, enter the word([{}]):", word.meanings);
+    println!(
+        "To memorize the spelling, enter the word([{}]):",
+        word.meanings
+    );
     println!("Enter empty line to abort test.");
     loop {
         let name = lines.next();

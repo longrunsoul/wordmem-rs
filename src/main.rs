@@ -45,11 +45,11 @@
 //! - JSON format for exported file of words.
 //! - Compressed .sqlite file as attachment and with INI format config info as body in email for syncing.
 
-mod infra;
-mod word_manager;
-mod revisit_planner;
-mod word_visitor;
 mod db_syncer;
+mod infra;
+mod revisit_planner;
+mod word_manager;
+mod word_visitor;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
@@ -106,9 +106,7 @@ fn main() -> Result<()> {
         let db = Db::new(Db::get_default_db_path())?;
         match &cli.command {
             Commands::Take => {
-                if {
-                    word_manager::read_words_to_db(&db)?
-                } > 0 {
+                if word_manager::read_words_to_db(&db)? > 0 {
                     PostAction::PushData
                 } else {
                     PostAction::None
@@ -184,8 +182,12 @@ fn main() -> Result<()> {
     let app_config = AppConfig::load_from_file(&default_conf_file)?;
     match post_action {
         PostAction::None => {}
-        PostAction::PushData => { db_syncer::push_data_to_email(app_config.as_ref())?; }
-        PostAction::PullData => { db_syncer::pull_data_from_email(app_config.as_ref())?; }
+        PostAction::PushData => {
+            db_syncer::push_data_to_email(app_config.as_ref())?;
+        }
+        PostAction::PullData => {
+            db_syncer::pull_data_from_email(app_config.as_ref())?;
+        }
     }
 
     Ok(())

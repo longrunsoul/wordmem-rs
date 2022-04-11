@@ -10,7 +10,9 @@ use anyhow::Result;
 use crate::infra::{Db, SqlVal, StdResult, Word};
 
 fn read_one_word<T>(lines: &mut T) -> Result<Option<Word>>
-    where T: Iterator<Item=StdResult<String, std::io::Error>> {
+where
+    T: Iterator<Item = StdResult<String, std::io::Error>>,
+{
     loop {
         let l = lines.next();
         if l.is_none() {
@@ -125,7 +127,11 @@ pub fn clear_words(db: &Db) -> Result<bool> {
     io::stdout().flush()?;
     let stdin = io::stdin();
     let mut lines = stdin.lock().lines();
-    let answer = lines.next().unwrap_or(Ok("N".to_string()))?.trim().to_lowercase();
+    let answer = lines
+        .next()
+        .unwrap_or(Ok("N".to_string()))?
+        .trim()
+        .to_lowercase();
     if answer != "y" && answer != "yes" {
         return Ok(false);
     }
@@ -136,7 +142,9 @@ pub fn clear_words(db: &Db) -> Result<bool> {
 }
 
 pub fn import_words<T>(db: &Db, file: T) -> Result<()>
-    where T: AsRef<Path> {
+where
+    T: AsRef<Path>,
+{
     println!("Importing words from {}...", file.as_ref().display());
     let json = fs::read_to_string(file)?;
     let name_meanings_pairs: HashMap<String, String> = serde_json::from_str(&json)?;
@@ -151,7 +159,9 @@ pub fn import_words<T>(db: &Db, file: T) -> Result<()>
 }
 
 pub fn export_words<T>(db: &Db, file: T) -> Result<()>
-    where T: AsRef<Path> {
+where
+    T: AsRef<Path>,
+{
     println!("Exporting words to {}...", file.as_ref().display());
     let mut name_meanings_pairs = HashMap::new();
     for w in db.get_all_words()? {
@@ -159,7 +169,11 @@ pub fn export_words<T>(db: &Db, file: T) -> Result<()>
     }
 
     let json = serde_json::to_string(&name_meanings_pairs)?;
-    let mut file = fs::OpenOptions::new().create(true).truncate(true).write(true).open(file)?;
+    let mut file = fs::OpenOptions::new()
+        .create(true)
+        .truncate(true)
+        .write(true)
+        .open(file)?;
     file.write_all(json.as_bytes())?;
 
     println!("All words exported.");

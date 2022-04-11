@@ -1,18 +1,15 @@
 use std::io::{Read, Seek, SeekFrom, Write};
 
-use anyhow::{Result, Error};
-use bzip2::{
-    Compression,
-    write::BzEncoder,
-    read::BzDecoder,
-};
+use anyhow::{Error, Result};
+use bzip2::{read::BzDecoder, write::BzEncoder, Compression};
 use chrono::{DateTime, SecondsFormat, Utc};
-use mail_parser::{self, BodyPart};
 use lettre::{
-    self, SmtpTransport, Transport,
-    message::{Attachment, MultiPart, header::ContentType},
+    self,
+    message::{header::ContentType, Attachment, MultiPart},
     transport::smtp::authentication::Credentials,
+    SmtpTransport, Transport,
 };
+use mail_parser::{self, BodyPart};
 use regex::Regex;
 use tar::Archive;
 
@@ -43,14 +40,20 @@ impl SyncData {
         let client = match sync_config.imap_encryption {
             Encryption::SslTls => &mut client,
             Encryption::StartTls => client.starttls(),
-        }.native_tls()?;
-        let mut imap_session = client.login(&sync_config.email, &password).map_err(|e| e.0)?;
+        }
+        .native_tls()?;
+        let mut imap_session = client
+            .login(&sync_config.email, &password)
+            .map_err(|e| e.0)?;
 
         let message;
         let mut message_list;
         loop {
             imap_session.select("INBOX")?;
-            let mut seq_list: Vec<_> = imap_session.search("SUBJECT [wordmem][sync]")?.into_iter().collect();
+            let mut seq_list: Vec<_> = imap_session
+                .search("SUBJECT [wordmem][sync]")?
+                .into_iter()
+                .collect();
             if seq_list.is_empty() {
                 return Ok(None);
             }
@@ -73,7 +76,11 @@ impl SyncData {
         let last_cap = regex.captures_iter(subject).last().unwrap();
         let time_str = last_cap.name("info").unwrap().as_str();
         let data_time = DateTime::parse_from_rfc3339(time_str)?.with_timezone(&Utc);
-        let bzip_bytes = message.get_attachment(0).unwrap().unwrap_binary().get_contents();
+        let bzip_bytes = message
+            .get_attachment(0)
+            .unwrap()
+            .unwrap_binary()
+            .get_contents();
 
         // extract db bytes
         let mut db_bytes = Vec::new();
@@ -128,25 +135,26 @@ impl SyncData {
         let message = lettre::Message::builder()
             .from(sync_config.email.parse().unwrap())
             .to(sync_config.email.parse().unwrap())
-            .subject(format!("[wordmem][sync][{}]", self.data_time.to_rfc3339_opts(SecondsFormat::Secs, true)))
-            .multipart(
-                MultiPart::builder()
-                    .singlepart(
-                        Attachment::new(format!("{}.tar.bz2", Db::get_default_db_name()))
-                            .body(
-                                bzip_bytes,
-                                ContentType::parse("application/octet-stream").unwrap(),
-                            )
-                    )
-            )?;
-        let mailer =
-            match sync_config.smtp_encryption {
-                Encryption::SslTls => SmtpTransport::relay(&sync_config.smtp_server_host)?,
-                Encryption::StartTls => SmtpTransport::starttls_relay(&sync_config.smtp_server_host)?,
-            }.credentials(Credentials::new(
-                sync_config.email.clone(),
-                password.unwrap(),
-            )).port(sync_config.smtp_server_port).build();
+            .subject(format!(
+                "[wordmem][sync][{}]",
+                self.data_time.to_rfc3339_opts(SecondsFormat::Secs, true)
+            ))
+            .multipart(MultiPart::builder().singlepart(
+                Attachment::new(format!("{}.tar.bz2", Db::get_default_db_name())).body(
+                    bzip_bytes,
+                    ContentType::parse("application/octet-stream").unwrap(),
+                ),
+            ))?;
+        let mailer = match sync_config.smtp_encryption {
+            Encryption::SslTls => SmtpTransport::relay(&sync_config.smtp_server_host)?,
+            Encryption::StartTls => SmtpTransport::starttls_relay(&sync_config.smtp_server_host)?,
+        }
+        .credentials(Credentials::new(
+            sync_config.email.clone(),
+            password.unwrap(),
+        ))
+        .port(sync_config.smtp_server_port)
+        .build();
         mailer.send(&message)?;
 
         Ok(())

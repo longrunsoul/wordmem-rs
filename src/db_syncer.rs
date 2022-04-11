@@ -6,13 +6,9 @@ use std::{
 
 use anyhow::Result;
 use chrono::{SecondsFormat, Utc};
-use lettre::{
-    SmtpTransport,
-    Transport,
-    transport::smtp::authentication::Credentials,
-};
+use lettre::{transport::smtp::authentication::Credentials, SmtpTransport, Transport};
 
-use crate::infra::{AppConfig, Db, SyncData, SyncConfig, Encryption};
+use crate::infra::{AppConfig, Db, Encryption, SyncConfig, SyncData};
 
 pub fn test_sync_config(sync_config: &SyncConfig) -> Result<bool> {
     println!("Testing sync config...");
@@ -31,28 +27,29 @@ pub fn test_sync_config(sync_config: &SyncConfig) -> Result<bool> {
         .to(sync_config.email.parse().unwrap())
         .subject(&subject)
         .body(String::new())?;
-    let mailer =
-        match sync_config.smtp_encryption {
-            Encryption::SslTls => SmtpTransport::relay(&sync_config.smtp_server_host)?,
-            Encryption::StartTls => SmtpTransport::starttls_relay(&sync_config.smtp_server_host)?
-        }.credentials(Credentials::new(
-            sync_config.email.clone(),
-            password.clone()
-        )).port(sync_config.smtp_server_port).build();
+    let mailer = match sync_config.smtp_encryption {
+        Encryption::SslTls => SmtpTransport::relay(&sync_config.smtp_server_host)?,
+        Encryption::StartTls => SmtpTransport::starttls_relay(&sync_config.smtp_server_host)?,
+    }
+    .credentials(Credentials::new(
+        sync_config.email.clone(),
+        password.clone(),
+    ))
+    .port(sync_config.smtp_server_port)
+    .build();
     if let Err(e) = mailer.send(&message) {
         println!("Failed. Error: {}", e);
         return Ok(false);
     }
 
     println!("Reading the mail just sent...");
-    let mut client = imap::ClientBuilder::new(
-        &sync_config.imap_server_host,
-        sync_config.imap_server_port
-    );
+    let mut client =
+        imap::ClientBuilder::new(&sync_config.imap_server_host, sync_config.imap_server_port);
     let client = match sync_config.imap_encryption {
         Encryption::SslTls => &mut client,
         Encryption::StartTls => client.starttls(),
-    }.native_tls()?;
+    }
+    .native_tls()?;
     let imap_session = client.login(&sync_config.email, &password);
     if let Err((e, _c)) = imap_session {
         println!("Failed. Error: {}", e);
@@ -137,7 +134,8 @@ pub fn push_data_to_email(app_config: Option<&AppConfig>) -> Result<bool> {
     SyncData {
         data_time: Utc::now(),
         db_bytes: fs::read(Db::get_default_db_path())?,
-    }.push_data(app_config.sync.as_ref())?;
+    }
+    .push_data(app_config.sync.as_ref())?;
 
     println!("Success.");
     Ok(true)

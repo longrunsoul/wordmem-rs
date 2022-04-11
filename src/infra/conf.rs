@@ -6,7 +6,7 @@ use std::{
 };
 
 use anyhow::Result;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 const KEYRING_SERVICE: &str = "wordmem.lrs";
 
@@ -33,7 +33,10 @@ impl FromStr for Encryption {
             "ssltls" => Ok(Encryption::SslTls),
             "starttls" => Ok(Encryption::StartTls),
 
-            _ => Err(Self::Err::msg(format!("Unrecognized encryption method: {}", s))),
+            _ => Err(Self::Err::msg(format!(
+                "Unrecognized encryption method: {}",
+                s
+            ))),
         }
     }
 }
@@ -95,7 +98,9 @@ impl AppConfig {
     }
 
     pub fn load_from_file<P>(file: &P) -> Result<Option<AppConfig>>
-        where P: AsRef<Path> {
+    where
+        P: AsRef<Path>,
+    {
         if !file.as_ref().exists() {
             return Ok(None);
         }
@@ -106,7 +111,9 @@ impl AppConfig {
     }
 
     pub fn save_to_file<P>(&self, file: &P) -> Result<()>
-        where P: AsRef<Path> {
+    where
+        P: AsRef<Path>,
+    {
         let dir = file.as_ref().parent();
         if dir.is_some() {
             let dir = dir.unwrap();
@@ -115,7 +122,11 @@ impl AppConfig {
             }
         }
 
-        let file = fs::OpenOptions::new().create(true).truncate(true).write(true).open(file)?;
+        let file = fs::OpenOptions::new()
+            .create(true)
+            .truncate(true)
+            .write(true)
+            .open(file)?;
         serde_json::to_writer(file, self)?;
 
         Ok(())

@@ -4,7 +4,7 @@ use std::{
 };
 
 use anyhow::Result;
-use chrono::{DateTime, Utc, NaiveDateTime, Duration};
+use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 
 pub type StdResult<T, E> = std::result::Result<T, E>;
 
@@ -58,13 +58,22 @@ impl Word {
             name: get_val(&hash_map, "name")?.unwrap(),
             meanings: get_val(&hash_map, "meanings")?.unwrap(),
             period_days: get_val(&hash_map, "period_days")?.unwrap(),
-            last_visit: DateTime::from_utc(NaiveDateTime::from_timestamp(get_val(&hash_map, "last_visit")?.unwrap(), 0), Utc),
-            next_visit: DateTime::from_utc(NaiveDateTime::from_timestamp(get_val(&hash_map, "next_visit")?.unwrap(), 0), Utc),
+            last_visit: DateTime::from_utc(
+                NaiveDateTime::from_timestamp(get_val(&hash_map, "last_visit")?.unwrap(), 0),
+                Utc,
+            ),
+            next_visit: DateTime::from_utc(
+                NaiveDateTime::from_timestamp(get_val(&hash_map, "next_visit")?.unwrap(), 0),
+                Utc,
+            ),
         })
     }
 
     pub fn norm_meanings(meanings: &str) -> String {
-        Word::make_meaning_cmp_map(meanings).into_values().collect::<Vec<_>>().join(";")
+        Word::make_meaning_cmp_map(meanings)
+            .into_values()
+            .collect::<Vec<_>>()
+            .join(";")
     }
 
     pub fn merge_meanings(&mut self, meanings: &str) {
@@ -83,7 +92,9 @@ impl Word {
 
     pub fn has_meanings(&self, meanings: &str) -> bool {
         let mset: HashSet<String> = Word::make_meaning_cmp_map(meanings).into_keys().collect();
-        let self_mset: HashSet<String> = Word::make_meaning_cmp_map(&self.meanings).into_keys().collect();
+        let self_mset: HashSet<String> = Word::make_meaning_cmp_map(&self.meanings)
+            .into_keys()
+            .collect();
         if mset.is_empty() {
             return false;
         }
@@ -101,8 +112,13 @@ fn to_hashmap<'a>(pairs: &'a [(&str, Option<&str>)]) -> HashMap<&'a str, Option<
     hash_map
 }
 
-fn get_val<T>(h: &HashMap<&str, Option<&str>>, key: &str) -> StdResult<Option<T>, <T as FromStr>::Err>
-    where T: FromStr {
+fn get_val<T>(
+    h: &HashMap<&str, Option<&str>>,
+    key: &str,
+) -> StdResult<Option<T>, <T as FromStr>::Err>
+where
+    T: FromStr,
+{
     let val = h.get(key);
     if val.is_none() {
         return Ok(None);

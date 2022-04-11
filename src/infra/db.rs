@@ -13,16 +13,16 @@ pub struct Db {
 
 impl Db {
     fn init(&self) -> Result<()> {
-        self.conn.execute("\
-            CREATE TABLE IF NOT EXISTS word (
+        self.conn.execute(
+            "CREATE TABLE IF NOT EXISTS word (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL UNIQUE,
                 meanings TEXT NOT NULL,
                 period_days INTEGER NOT NULL,
                 last_visit INTEGER NOT NULL,
                 next_visit INTEGER NOT NULL
-            );
-        ")?;
+            );",
+        )?;
         Ok(())
     }
 
@@ -37,13 +37,17 @@ impl Db {
     }
 
     pub fn new_mem() -> Result<Db> {
-        let db = Db { conn: Connection::open(":memory:")? };
+        let db = Db {
+            conn: Connection::open(":memory:")?,
+        };
         db.init()?;
         Ok(db)
     }
 
     pub fn new<T>(file: T) -> Result<Db>
-        where T: AsRef<Path> {
+    where
+        T: AsRef<Path>,
+    {
         let dir = file.as_ref().parent();
         if dir.is_some() {
             let dir = dir.unwrap();
@@ -52,7 +56,9 @@ impl Db {
             }
         }
 
-        let db = Db { conn: Connection::open(file)? };
+        let db = Db {
+            conn: Connection::open(file)?,
+        };
         db.init()?;
         Ok(db)
     }
@@ -75,25 +81,22 @@ impl Db {
     }
 
     pub fn insert_word(&self, word: &Word) -> Result<()> {
-        self.conn.execute(
-            format!(
-                "INSERT INTO word (name, meanings, period_days, last_visit, next_visit)
+        self.conn.execute(format!(
+            "INSERT INTO word (name, meanings, period_days, last_visit, next_visit)
                 VALUES ({}, {}, {}, {}, {});",
-                SqlVal::Text(&word.name),
-                SqlVal::Text(&word.meanings),
-                SqlVal::Integer(word.period_days as i64),
-                SqlVal::Integer(word.last_visit.timestamp()),
-                SqlVal::Integer(word.next_visit.timestamp())
-            )
-        )?;
+            SqlVal::Text(&word.name),
+            SqlVal::Text(&word.meanings),
+            SqlVal::Integer(word.period_days as i64),
+            SqlVal::Integer(word.last_visit.timestamp()),
+            SqlVal::Integer(word.next_visit.timestamp())
+        ))?;
 
         Ok(())
     }
 
     pub fn update_word(&self, word: &Word) -> Result<()> {
-        self.conn.execute(
-            format!(
-                "UPDATE word
+        self.conn.execute(format!(
+            "UPDATE word
                 SET
                     name={},
                     meanings={},
@@ -101,25 +104,22 @@ impl Db {
                     last_visit={},
                     next_visit={}
                 WHERE id = {};",
-                SqlVal::Text(&word.name),
-                SqlVal::Text(&word.meanings),
-                SqlVal::Integer(word.period_days as i64),
-                SqlVal::Integer(word.last_visit.timestamp()),
-                SqlVal::Integer(word.next_visit.timestamp()),
-                SqlVal::Integer(word.id.unwrap())
-            )
-        )?;
+            SqlVal::Text(&word.name),
+            SqlVal::Text(&word.meanings),
+            SqlVal::Integer(word.period_days as i64),
+            SqlVal::Integer(word.last_visit.timestamp()),
+            SqlVal::Integer(word.next_visit.timestamp()),
+            SqlVal::Integer(word.id.unwrap())
+        ))?;
 
         Ok(())
     }
 
     pub fn del_word(&self, id: i64) -> Result<()> {
-        self.conn.execute(
-            format!(
-                "DELETE FROM word WHERE id = {};",
-                SqlVal::Integer(id)
-            )
-        )?;
+        self.conn.execute(format!(
+            "DELETE FROM word WHERE id = {};",
+            SqlVal::Integer(id)
+        ))?;
 
         Ok(())
     }
@@ -175,7 +175,8 @@ impl Db {
                 )
             } else {
                 ";".to_string()
-            }.as_str()
+            }
+            .as_str(),
         )?;
 
         Ok(())
@@ -183,13 +184,10 @@ impl Db {
 
     pub fn get_all_words(&self) -> Result<Vec<Word>> {
         let mut words = Vec::new();
-        self.conn.iterate(
-            "SELECT * FROM word",
-            |pairs| {
-                words.push(Word::from_sqlite_pairs(pairs));
-                true
-            },
-        )?;
+        self.conn.iterate("SELECT * FROM word", |pairs| {
+            words.push(Word::from_sqlite_pairs(pairs));
+            true
+        })?;
         words.into_iter().collect()
     }
 }
@@ -222,7 +220,9 @@ mod db_tests {
         // update
         word.name = "world".to_string();
         db.update_word(&word)?;
-        let word = db.get_by_col("id", SqlVal::Integer(word.id.unwrap()))?.unwrap();
+        let word = db
+            .get_by_col("id", SqlVal::Integer(word.id.unwrap()))?
+            .unwrap();
         assert_eq!(word.name, "world".to_string());
 
         // delete
