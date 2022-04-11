@@ -44,8 +44,8 @@ pub fn test_sync_config(sync_config: &mut SyncConfig) -> Result<bool> {
         return Ok(false);
     }
 
-    println!("Wait 5 seconds before checking email...");
-    thread::sleep(Duration::from_secs(5));
+    println!("Wait 10 seconds before checking email...");
+    thread::sleep(Duration::from_secs(10));
 
     println!("Reading the mail just sent...");
     let mut client =
@@ -162,13 +162,13 @@ pub fn read_sync_config() -> Result<SyncConfig> {
 
 pub fn push_data_to_email(app_config: Option<&AppConfig>) -> Result<bool> {
     if app_config.is_none() {
-        println!("Email not signed in. No need to sync.");
+        println!("Email not signed in. Not syncing.");
         return Ok(false);
     }
 
     let app_config = app_config.unwrap();
     if app_config.sync.is_none() {
-        println!("Email not signed in. No need to sync.");
+        println!("Email not signed in. Not syncing.");
         return Ok(false);
     }
 
@@ -189,13 +189,13 @@ pub fn push_data_to_email(app_config: Option<&AppConfig>) -> Result<bool> {
 
 pub fn pull_data_from_email(app_config: Option<&AppConfig>) -> Result<bool> {
     if app_config.is_none() {
-        println!("Email not signed in. No need to sync.");
+        println!("Email not signed in. Not syncing.");
         return Ok(false);
     }
 
     let app_config = app_config.unwrap();
     if app_config.sync.is_none() {
-        println!("Email not signed in. No need to sync.");
+        println!("Email not signed in. Not syncing.");
         return Ok(false);
     }
 
