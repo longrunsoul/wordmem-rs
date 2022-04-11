@@ -117,8 +117,8 @@ fn main() -> Result<()> {
                 PostAction::PushData
             }
             Commands::Signin => {
-                let sync_config = db_syncer::read_sync_config()?;
-                if db_syncer::test_sync_config(&sync_config)? {
+                let mut sync_config = db_syncer::read_sync_config()?;
+                if db_syncer::test_sync_config(&mut sync_config)? {
                     let app_config = AppConfig::load_from_file(&default_conf_file)?;
                     let mut app_config = app_config.unwrap_or(AppConfig { sync: None });
                     app_config.sync = Some(sync_config);

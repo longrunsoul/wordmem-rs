@@ -52,6 +52,9 @@ pub struct SyncConfig {
     pub smtp_encryption: Encryption,
 
     pub email: String,
+
+    /// use SEARCH ALL to workaround SEARCH SUBJECT <subject>
+    pub workaround_imap_search: Option<bool>,
 }
 
 impl SyncConfig {

@@ -10,7 +10,7 @@ use lettre::{transport::smtp::authentication::Credentials, SmtpTransport, Transp
 
 use crate::infra::*;
 
-pub fn test_sync_config(sync_config: &SyncConfig) -> Result<bool> {
+pub fn test_sync_config(sync_config: &mut SyncConfig) -> Result<bool> {
     println!("Testing sync config...");
     let password = sync_config.get_password()?;
     if password.is_none() {
@@ -64,13 +64,42 @@ pub fn test_sync_config(sync_config: &SyncConfig) -> Result<bool> {
 
     imap_session.select("INBOX")?;
     let seq_list = imap_session.search(format!("SUBJECT {}", subject))?;
+    if !seq_list.is_empty() {
+        sync_config.workaround_imap_search = Some(false);
+
+        println!("Success.");
+        return Ok(true);
+    }
+
+    let seq_list = imap_session.search("ALL")?;
     if seq_list.is_empty() {
         println!("Failed. Test mail not found in INBOX.");
         return Ok(false);
     }
 
-    println!("Success.");
-    Ok(true)
+    let mut seq_list: Vec<_> = seq_list.iter().collect();
+    seq_list.sort();
+    seq_list.reverse();
+    for chunk in seq_list.chunks(50) {
+        let seqset = chunk
+            .iter()
+            .map(|s| s.to_string())
+            .collect::<Vec<_>>()
+            .join(",");
+        let message_list = imap_session.fetch(seqset, "RFC822")?;
+        if message_list.iter().any(|m| {
+            let message = mail_parser::Message::parse(m.body().unwrap()).unwrap();
+            message.get_subject().unwrap() == subject
+        }) {
+            sync_config.workaround_imap_search = Some(true);
+
+            println!("Success.");
+            return Ok(true);
+        }
+    }
+
+    println!("Failed. Test mail not found in INBOX.");
+    Ok(false)
 }
 
 pub fn read_sync_config() -> Result<SyncConfig> {
@@ -115,6 +144,7 @@ pub fn read_sync_config() -> Result<SyncConfig> {
         smtp_encryption,
 
         email,
+        workaround_imap_search: None,
     };
 
     let password = rpassword::prompt_password("Enter password: ")?;
@@ -135,9 +165,13 @@ pub fn push_data_to_email(app_config: Option<&AppConfig>) -> Result<bool> {
         return Ok(false);
     }
 
-    println!("Pushing data to email...");
+    let now = Utc::now();
+    println!(
+        "Pushing data to sync-email [{}]...",
+        now.to_rfc3339_opts(SecondsFormat::Secs, true)
+    );
     SyncData {
-        data_time: Utc::now(),
+        data_time: now,
         db_bytes: fs::read(Db::get_default_db_path())?,
     }
     .push_data(app_config.sync.as_ref())?;
@@ -164,9 +198,14 @@ pub fn pull_data_from_email(app_config: Option<&AppConfig>) -> Result<bool> {
         println!("Data not found in email. Syncing aborted.");
         return Ok(false);
     }
-
-    println!("Merging data...");
     let sync_data = sync_data.unwrap();
+
+    println!(
+        "Merging data from sync-mail [{}]...",
+        sync_data
+            .data_time
+            .to_rfc3339_opts(SecondsFormat::Secs, true)
+    );
     let email_db = tempfile::Builder::new().tempfile()?;
     fs::write(email_db.path(), sync_data.db_bytes)?;
     let words = Db::new(email_db.path())?.get_all_words()?;

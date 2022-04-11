@@ -5,7 +5,10 @@ use bzip2::{read::BzDecoder, write::BzEncoder, Compression};
 use chrono::{DateTime, SecondsFormat, Utc};
 use lettre::{
     self,
-    message::{header::ContentType, Attachment, MultiPart},
+    message::{
+        header::{self, ContentType},
+        Attachment, MultiPart,
+    },
     transport::smtp::authentication::Credentials,
     SmtpTransport, Transport,
 };
@@ -51,31 +54,68 @@ impl SyncData {
             imap_session.run_command_and_check_ok(IMAP_ID_COMMAND)?;
         }
 
-        let message;
-        let mut message_list;
-        loop {
-            imap_session.select("INBOX")?;
+        imap_session.select("INBOX")?;
+
+        let mut message = None;
+        let mut fetches;
+        if !sync_config.workaround_imap_search.unwrap() {
             let mut seq_list: Vec<_> = imap_session
                 .search("SUBJECT [wordmem][sync]")?
                 .into_iter()
                 .collect();
-            if seq_list.is_empty() {
+            if !seq_list.is_empty() {
                 return Ok(None);
             }
 
             seq_list.sort();
             let last_seq = seq_list.last().unwrap();
-            message_list = imap_session.fetch(last_seq.to_string(), "RFC822")?;
-            let m = message_list.iter().next();
-            if m.is_none() {
-                continue;
+            fetches = imap_session.fetch(last_seq.to_string(), "RFC822")?;
+            message = Some(fetches.iter().next().unwrap());
+        } else {
+            let seq_list = imap_session.search("ALL")?;
+            if seq_list.is_empty() {
+                return Ok(None);
             }
 
-            message = m.unwrap();
-            break;
+            let mut seq_list: Vec<_> = seq_list.iter().collect();
+            seq_list.sort();
+            seq_list.reverse();
+            for chunk in seq_list.chunks(50) {
+                let seqset = chunk
+                    .iter()
+                    .map(|s| s.to_string())
+                    .collect::<Vec<_>>()
+                    .join(",");
+                fetches = imap_session.fetch(seqset, "RFC822")?;
+
+                let mut fetches_sorted = fetches.iter().collect::<Vec<_>>();
+                fetches_sorted.sort_by_key(|m| {
+                    mail_parser::Message::parse(m.body().unwrap())
+                        .unwrap()
+                        .get_date()
+                        .unwrap()
+                        .to_timestamp()
+                        .unwrap()
+                });
+                fetches_sorted.reverse();
+
+                message = fetches_sorted.into_iter().find(|m| {
+                    mail_parser::Message::parse(m.body().unwrap())
+                        .unwrap()
+                        .get_subject()
+                        .unwrap()
+                        .starts_with("[wordmem][sync]")
+                });
+                if message.is_some() {
+                    break;
+                }
+            }
+        }
+        if message.is_none() {
+            return Ok(None);
         }
 
-        let message = mail_parser::Message::parse(message.body().unwrap()).unwrap();
+        let message = mail_parser::Message::parse(message.unwrap().body().unwrap()).unwrap();
         let subject = message.get_subject().unwrap();
         let regex = Regex::new(r"\[(?P<info>[^\]]*)\]")?;
         let last_cap = regex.captures_iter(subject).last().unwrap();
@@ -144,12 +184,12 @@ impl SyncData {
                 "[wordmem][sync][{}]",
                 self.data_time.to_rfc3339_opts(SecondsFormat::Secs, true)
             ))
-            .multipart(MultiPart::builder().singlepart(
+            .singlepart(
                 Attachment::new(format!("{}.tar.bz2", Db::get_default_db_name())).body(
                     bzip_bytes,
                     ContentType::parse("application/octet-stream").unwrap(),
                 ),
-            ))?;
+            )?;
         let mailer = match sync_config.smtp_encryption {
             Encryption::SslTls => SmtpTransport::relay(&sync_config.smtp_server_host)?,
             Encryption::StartTls => SmtpTransport::starttls_relay(&sync_config.smtp_server_host)?,
