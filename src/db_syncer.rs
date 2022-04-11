@@ -86,7 +86,7 @@ pub fn test_sync_config(sync_config: &mut SyncConfig) -> Result<bool> {
             .map(|s| s.to_string())
             .collect::<Vec<_>>()
             .join(",");
-        let message_list = imap_session.fetch(seqset, "RFC822")?;
+        let message_list = imap_session.fetch(seqset, "BODY.PEEK[]")?;
         if message_list.iter().any(|m| {
             let message = mail_parser::Message::parse(m.body().unwrap()).unwrap();
             message.get_subject().unwrap() == subject

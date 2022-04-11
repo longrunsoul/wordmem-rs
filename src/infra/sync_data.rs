@@ -83,7 +83,7 @@ impl SyncData {
                     .map(|s| s.to_string())
                     .collect::<Vec<_>>()
                     .join(",");
-                fetches = imap_session.fetch(seqset, "RFC822")?;
+                fetches = imap_session.fetch(seqset, "BODY.PEEK[]")?;
 
                 let mut fetches_sorted = fetches.iter().collect::<Vec<_>>();
                 fetches_sorted.sort_by_key(|m| {
