@@ -46,6 +46,6 @@ Commandline interface:
 Implementation:
 - SQLite for storage of words.
 - JSON format for exported file of words.
-- Compressed .sqlite file as attachment and with INI format config info as body in email for syncing.
+- Compressed .sqlite file as attachment of email for syncing.
 
 License: GPL3
