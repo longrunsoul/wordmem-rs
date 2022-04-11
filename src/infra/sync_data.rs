@@ -64,7 +64,7 @@ impl SyncData {
                 return Ok(None);
             }
 
-            seq_list.sort();
+            seq_list.sort_unstable();
             let last_seq = seq_list.last().unwrap();
             fetches = imap_session.fetch(last_seq.to_string(), "RFC822")?;
             message = Some(fetches.iter().next().unwrap());

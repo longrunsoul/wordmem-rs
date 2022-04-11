@@ -118,8 +118,7 @@ impl AppConfig {
         P: AsRef<Path>,
     {
         let dir = file.as_ref().parent();
-        if dir.is_some() {
-            let dir = dir.unwrap();
+        if let Some(dir) = dir {
             if !dir.exists() {
                 fs::create_dir(dir)?;
             }

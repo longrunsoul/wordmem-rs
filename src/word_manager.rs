@@ -25,7 +25,7 @@ where
             return Ok(None);
         }
 
-        let pair = l.split_once("=");
+        let pair = l.split_once('=');
         if pair.is_none() {
             println!("Unrecognized input. Format: <WORD>=<MEANING1>;<MEANING2>;...;<MEANINGn>");
             println!("Enter empty line to end listing.");
@@ -129,7 +129,7 @@ pub fn clear_words(db: &Db) -> Result<bool> {
     let mut lines = stdin.lock().lines();
     let answer = lines
         .next()
-        .unwrap_or(Ok("N".to_string()))?
+        .unwrap_or_else(|| Ok("N".to_string()))?
         .trim()
         .to_lowercase();
     if answer != "y" && answer != "yes" {

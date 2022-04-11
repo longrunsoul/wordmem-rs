@@ -34,7 +34,7 @@ fn prepare_sql_value(s: &str) -> String {
     let mut result = s.to_string();
 
     // anti-injection
-    result = result.replace("'", "");
+    result = result.replace('\'', "");
 
     result
 }
