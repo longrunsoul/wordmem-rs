@@ -1,10 +1,13 @@
 use std::fmt::{Display, Formatter};
 
 pub enum SqlVal<'a> {
+    #[allow(dead_code)]
     Null,
     Integer(i64),
+    #[allow(dead_code)]
     Real(f64),
     Text(&'a str),
+    #[allow(dead_code)]
     Blob(&'a [u8]),
 }
 

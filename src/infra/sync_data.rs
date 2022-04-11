@@ -5,10 +5,7 @@ use bzip2::{read::BzDecoder, write::BzEncoder, Compression};
 use chrono::{DateTime, SecondsFormat, Utc};
 use lettre::{
     self,
-    message::{
-        header::{self, ContentType},
-        Attachment, MultiPart,
-    },
+    message::{header::ContentType, Attachment},
     transport::smtp::authentication::Credentials,
     SmtpTransport, Transport,
 };

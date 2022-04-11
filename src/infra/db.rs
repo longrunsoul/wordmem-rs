@@ -36,6 +36,7 @@ impl Db {
         db_path
     }
 
+    #[allow(dead_code)]
     pub fn new_mem() -> Result<Db> {
         let db = Db {
             conn: Connection::open(":memory:")?,
