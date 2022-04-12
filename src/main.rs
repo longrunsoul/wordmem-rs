@@ -92,101 +92,89 @@ enum Commands {
     Import { file: String },
 }
 
-enum PostAction {
-    None,
-    PushData,
-    PullData,
+fn pull_data() -> Result<()> {
+    let default_conf_file = AppConfig::get_default_conf_path();
+    let app_config = AppConfig::load_from_file(&default_conf_file)?;
+    db_syncer::pull_data_from_email(app_config.as_ref())?;
+
+    Ok(())
+}
+
+fn push_data() -> Result<()> {
+    let default_conf_file = AppConfig::get_default_conf_path();
+    let app_config = AppConfig::load_from_file(&default_conf_file)?;
+    db_syncer::push_data_to_email(app_config.as_ref())?;
+
+    Ok(())
 }
 
 fn main() -> Result<()> {
-    let default_conf_file = AppConfig::get_default_conf_path();
-
     let cli = Cli::parse();
-    let post_action = {
-        let db = Db::new(Db::get_default_db_path())?;
-        match &cli.command {
-            Commands::Take => {
-                if word_manager::read_words_to_db(&db)? > 0 {
-                    PostAction::PushData
-                } else {
-                    PostAction::None
-                }
+    let default_db_file = Db::get_default_db_path();
+    let default_conf_file = AppConfig::get_default_conf_path();
+    match &cli.command {
+        Commands::Take => {
+            pull_data()?;
+            if word_manager::read_words_to_db(&Db::new(default_db_file)?)? > 0 {
+                push_data()?;
             }
-            Commands::Test => {
-                word_visitor::do_tests(&db)?;
-                PostAction::PushData
+        }
+        Commands::Test => {
+            pull_data()?;
+            word_visitor::do_tests(&Db::new(default_db_file)?)?;
+            push_data()?;
+        }
+        Commands::Signin => {
+            let mut sync_config = db_syncer::read_sync_config()?;
+            if db_syncer::test_sync_config(&mut sync_config)? {
+                let app_config = AppConfig::load_from_file(&default_conf_file)?;
+                let mut app_config = app_config.unwrap_or(AppConfig { sync: None });
+                app_config.sync = Some(sync_config);
+                app_config.save_to_file(&default_conf_file)?;
+            } else {
+                sync_config.clear_password()?;
             }
-            Commands::Signin => {
-                let mut sync_config = db_syncer::read_sync_config()?;
-                if db_syncer::test_sync_config(&mut sync_config)? {
-                    let app_config = AppConfig::load_from_file(&default_conf_file)?;
-                    let mut app_config = app_config.unwrap_or(AppConfig { sync: None });
-                    app_config.sync = Some(sync_config);
-                    app_config.save_to_file(&default_conf_file)?;
-                } else {
+        }
+        Commands::Signout => {
+            let app_config = AppConfig::load_from_file(&default_conf_file)?;
+            if let Some(mut app_config) = app_config {
+                if let Some(sync_config) = app_config.sync {
                     sync_config.clear_password()?;
                 }
-
-                PostAction::None
-            }
-            Commands::Signout => {
-                let app_config = AppConfig::load_from_file(&default_conf_file)?;
-                if let Some(mut app_config) = app_config {
-                    if let Some(sync_config) = app_config.sync {
-                        sync_config.clear_password()?;
-                    }
-                    app_config.sync = None;
-                    app_config.save_to_file(&default_conf_file)?;
-                }
-
-                PostAction::None
-            }
-            Commands::Push => PostAction::PushData,
-            Commands::Pull => PostAction::PullData,
-            Commands::Change { word } => {
-                if word_manager::change_word(&db, word)? {
-                    PostAction::PushData
-                } else {
-                    PostAction::None
-                }
-            }
-            Commands::Delete { word } => {
-                if word_manager::delete_word(&db, word)? {
-                    PostAction::PushData
-                } else {
-                    PostAction::None
-                }
-            }
-            Commands::Open { word } => {
-                word_manager::open_word(word)?;
-                PostAction::None
-            }
-            Commands::Clear => {
-                if word_manager::clear_words(&db)? {
-                    PostAction::PushData
-                } else {
-                    PostAction::None
-                }
-            }
-            Commands::Export { file } => {
-                word_manager::export_words(&db, file)?;
-                PostAction::None
-            }
-            Commands::Import { file } => {
-                word_manager::import_words(&db, file)?;
-                PostAction::None
+                app_config.sync = None;
+                app_config.save_to_file(&default_conf_file)?;
             }
         }
-    };
-
-    let app_config = AppConfig::load_from_file(&default_conf_file)?;
-    match post_action {
-        PostAction::None => {}
-        PostAction::PushData => {
-            db_syncer::push_data_to_email(app_config.as_ref())?;
+        Commands::Push => push_data()?,
+        Commands::Pull => pull_data()?,
+        Commands::Change { word } => {
+            pull_data()?;
+            if word_manager::change_word(&Db::new(default_db_file)?, word)? {
+                push_data()?;
+            }
         }
-        PostAction::PullData => {
-            db_syncer::pull_data_from_email(app_config.as_ref())?;
+        Commands::Delete { word } => {
+            pull_data()?;
+            if word_manager::delete_word(&Db::new(default_db_file)?, word)? {
+                push_data()?;
+            }
+        }
+        Commands::Open { word } => {
+            word_manager::open_word(word)?;
+        }
+        Commands::Clear => {
+            if word_manager::clear_words(&Db::new(default_db_file)?)? {
+                push_data()?;
+            }
+        }
+        Commands::Export { file } => {
+            pull_data()?;
+            word_manager::export_words(&Db::new(default_db_file)?, file)?;
+        }
+        Commands::Import { file } => {
+            pull_data()?;
+            word_manager::import_words(&Db::new(default_db_file)?, file)?;
+            push_data()?;
         }
     }
 
