@@ -83,7 +83,10 @@ fn test_one_word(db: &Db) -> Result<bool> {
     Ok(true)
 }
 
-pub fn do_tests(db: &Db) -> Result<()> {
-    while test_one_word(db)? {}
-    Ok(())
+pub fn do_tests(db: &Db) -> Result<usize> {
+    let mut count = 0usize;
+    while test_one_word(db)? {
+        count += 1;
+    }
+    Ok(count)
 }

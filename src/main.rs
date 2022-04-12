@@ -121,8 +121,9 @@ fn main() -> Result<()> {
         }
         Commands::Test => {
             pull_data()?;
-            word_visitor::do_tests(&Db::new(default_db_file)?)?;
-            push_data()?;
+            if word_visitor::do_tests(&Db::new(default_db_file)?)? > 0 {
+                push_data()?;
+            }
         }
         Commands::Signin => {
             let mut sync_config = db_syncer::read_sync_config()?;
