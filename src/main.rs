@@ -114,16 +114,10 @@ fn main() -> Result<()> {
     let default_conf_file = AppConfig::get_default_conf_path();
     match &cli.command {
         Commands::Take => {
-            pull_data()?;
-            if word_manager::read_words_to_db(&Db::new(default_db_file)?)? > 0 {
-                push_data()?;
-            }
+            word_manager::read_words_to_db(&Db::new(default_db_file)?)?;
         }
         Commands::Test => {
-            pull_data()?;
-            if word_visitor::do_tests(&Db::new(default_db_file)?)? > 0 {
-                push_data()?;
-            }
+            word_visitor::do_tests(&Db::new(default_db_file)?)?;
         }
         Commands::Signin => {
             let mut sync_config = db_syncer::read_sync_config()?;
@@ -149,33 +143,22 @@ fn main() -> Result<()> {
         Commands::Push => push_data()?,
         Commands::Pull => pull_data()?,
         Commands::Change { word } => {
-            pull_data()?;
-            if word_manager::change_word(&Db::new(default_db_file)?, word)? {
-                push_data()?;
-            }
+            word_manager::change_word(&Db::new(default_db_file)?, word)?;
         }
         Commands::Delete { word } => {
-            pull_data()?;
-            if word_manager::delete_word(&Db::new(default_db_file)?, word)? {
-                push_data()?;
-            }
+            word_manager::delete_word(&Db::new(default_db_file)?, word)?;
         }
         Commands::Open { word } => {
             word_manager::open_word(word)?;
         }
         Commands::Clear => {
-            if word_manager::clear_words(&Db::new(default_db_file)?)? {
-                push_data()?;
-            }
+            word_manager::clear_words(&Db::new(default_db_file)?)?;
         }
         Commands::Export { file } => {
-            pull_data()?;
             word_manager::export_words(&Db::new(default_db_file)?, file)?;
         }
         Commands::Import { file } => {
-            pull_data()?;
             word_manager::import_words(&Db::new(default_db_file)?, file)?;
-            push_data()?;
         }
     }
 
