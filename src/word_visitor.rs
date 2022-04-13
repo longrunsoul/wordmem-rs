@@ -15,11 +15,9 @@ fn test_one_word(db: &Db) -> Result<bool> {
     let mut is_answer_correct = true;
 
     let mut word = word.unwrap();
-    println!();
-    println!("What are the meanings of [{}]:", word.name);
-    println!("Enter empty line to abort test.");
-
     let stdin = io::stdin();
+
+    println!("What are the meanings of [{}]:", word.name);
     let mut lines = stdin.lock().lines();
 
     let meanings = lines.next();
@@ -45,7 +43,6 @@ fn test_one_word(db: &Db) -> Result<bool> {
         "To memorize the spelling, enter the word([{}]):",
         word.meanings
     );
-    println!("Enter empty line to abort test.");
     loop {
         let name = lines.next();
         if name.is_none() {
@@ -69,6 +66,7 @@ fn test_one_word(db: &Db) -> Result<bool> {
 
         break;
     }
+    println!();
 
     let now = Utc::now();
     word.last_visit = now;
@@ -85,6 +83,7 @@ fn test_one_word(db: &Db) -> Result<bool> {
 
 pub fn do_tests(db: &Db) -> Result<usize> {
     let mut count = 0usize;
+    println!("Note: Enter empty line to abort test.");
     while test_one_word(db)? {
         count += 1;
     }
