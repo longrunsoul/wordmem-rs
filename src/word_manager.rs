@@ -36,7 +36,7 @@ where
         let name = name.trim();
         let meanings = meanings.trim();
         if name.is_empty() || meanings.is_empty() {
-            println!("Name or meanings cannot be empty.");
+            println!("Name or meaning cannot be empty.");
             println!("Enter empty line to end listing.");
             continue;
         }
@@ -83,12 +83,12 @@ pub fn change_word(db: &Db, name: &str) -> Result<bool> {
     let stdin = io::stdin();
     let mut lines = stdin.lock().lines();
     loop {
-        print!("Enter the meanings: ");
+        print!("Enter the meaning: ");
         io::stdout().flush()?;
         meanings = lines.next().unwrap()?;
         meanings = Word::norm_meanings(&meanings);
         if meanings.is_empty() {
-            println!("Meanings cannot be empty.");
+            println!("Meaning cannot be empty.");
             continue;
         }
 

@@ -17,7 +17,7 @@ fn test_one_word(db: &Db) -> Result<bool> {
     let mut word = word.unwrap();
     let stdin = io::stdin();
 
-    println!("What are the meanings of [{}]:", word.name);
+    println!("What are the meaning of [{}]:", word.name);
     let mut lines = stdin.lock().lines();
 
     let meanings = lines.next();
@@ -40,7 +40,7 @@ fn test_one_word(db: &Db) -> Result<bool> {
     }
 
     println!(
-        "To memorize the spelling, enter the word([{}]):",
+        "To memorize the spelling, enter the word with meaning [{}]:",
         word.meanings
     );
     loop {
