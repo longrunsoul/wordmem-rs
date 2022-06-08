@@ -92,7 +92,6 @@ impl SyncData {
                         .get_date()
                         .unwrap()
                         .to_timestamp()
-                        .unwrap()
                 });
                 fetches_sorted.reverse();
 
